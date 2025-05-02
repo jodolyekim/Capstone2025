@@ -12,7 +12,7 @@ Django, PostgreSQL, Redis를 기반으로 한 개발 환경을 Docker로 구성�
 > <https://www.docker.com/>
 
 #### 설치 과정은 아래 페이지를 참고
-> Window <https://myanjini.tistory.com/entry/%EC%9C%88%EB%8F%84%EC%9A%B0%EC%97%90-%EB%8F%84%EC%BB%A4-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%83%91-%EC%84%A4%EC%B9%98>
+> Windows <https://myanjini.tistory.com/entry/%EC%9C%88%EB%8F%84%EC%9A%B0%EC%97%90-%EB%8F%84%EC%BB%A4-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%83%91-%EC%84%A4%EC%B9%98>
 
 > MAC <https://goddaehee.tistory.com/312>
 
@@ -21,16 +21,16 @@ Django, PostgreSQL, Redis를 기반으로 한 개발 환경을 Docker로 구성�
 ## infra/base-setup 디렉토리 구조
 ```
 Capstone2025
-├── app/              
-│ ├── manage.py            
+├── app/                  # 실제 소스코드
+│ ├── manage.py           
 │ └── Capstone2025/	        		
 │   ├── settings.py
 │   └── ...            
-├── Dockerfile          
-├── docker-compose.yml  
-├── requirements.txt  
-├── .env.example        
-└── README.md 
+├── Dockerfile            # 실행 환경 정의
+├── docker-compose.yml    # 전체 서비스 구성
+├── requirements.txt      # 의존성 목록  
+├── .env.example          # 환경변수 예시
+└── README.md             # 실행 방법 설명 (현재 페이지)
 ```
 
 ---
@@ -80,6 +80,12 @@ docker-compose exec web python manage.py createsuperuser
 ---
 
 ## 🧪 개발 팁
+
++ Django 코드는 app/ 디렉토리에서 작업합니다.
++ 코드 수정 시 컨테이너는 자동 반영됩니다 (volumes 사용 중).
++ requirements.txt 수정 시 docker-compose build 다시 실행
+
+
 
 ## 🧼 정리 및 종료
 ```bash
