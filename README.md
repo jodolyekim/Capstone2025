@@ -41,7 +41,7 @@ DockerSetting4Capstone
 - Python 3.10
 - Django 4.x
 - PostgreSQL 15
-- Redis 7
+- Redis 7-alpine
 - Docker & docker-compose
 ```
 
