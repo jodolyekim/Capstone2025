@@ -21,10 +21,10 @@ Django, PostgreSQL, Redis를 기반으로 한 개발 환경을 Docker로 구성�
 
 ## infra/base-setup 디렉토리 구조
 ```
-Capstone2025
+DockerSetting4Capstone
 ├── app/                  # 실제 소스코드
 │ ├── manage.py           
-│ └── Capstone2025/	        		
+│ └── DockerSetting4Capstone/	        		
 │   ├── settings.py
 │   └── ...            
 ├── Dockerfile            # 실행 환경 정의
