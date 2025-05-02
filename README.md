@@ -17,16 +17,17 @@ Capstone2025
 └── README.md 
 ```
 
-```yaml
-## ⚙️ 사용 기술
 
+## ⚙️ 사용 기술
+```yaml
 - Python 3.10
 - Django 4.x
 - PostgreSQL 15
 - Redis 7
 - Docker & docker-compose
-
+```
 ---
+
 
 ## 🚀 실행 방법
 
@@ -35,5 +36,4 @@ Capstone2025
 ```bash
 git clone https://github.com/your-org/your-project.git
 cd your-project
-```
 ```
