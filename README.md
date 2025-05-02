@@ -3,7 +3,7 @@ Dankook Univ. Capstone Project 2025 1st semester.
 
 Django, PostgreSQL, Redis를 기반으로 한 개발 환경을 Docker로 구성한 템플릿으로
 팀원 누구나 빠르게 동일한 환경에서 개발할 수 있습니다.
-
+```
 Capstone2025
 ├── app/              
 │ ├── manage.py            
@@ -15,6 +15,7 @@ Capstone2025
 ├── requirements.txt  
 ├── .env.example        
 └── README.md 
+```
 
 ```yaml
 ## ⚙️ 사용 기술
