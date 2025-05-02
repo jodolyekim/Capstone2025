@@ -2,7 +2,22 @@
 Dankook Univ. Capstone Project 2025 1st semester.
 
 Django, PostgreSQL, Redis를 기반으로 한 개발 환경을 Docker로 구성한 템플릿으로
+
 팀원 누구나 빠르게 동일한 환경에서 개발할 수 있습니다.
+
+## 이하 모든 작업은 WSL2(Window Subsystem for Linux)에서 작업했습니다.
+
+## 시작하기 전 
+---
+### 1. Docker Desktop 설치
+#### 아래 페이지에 접속해서 Docker Desktop 설치
+> <https://www.docker.com/>
+
+#### 설치 과정은 아래 페이지를 참고
+> Window <https://myanjini.tistory.com/entry/%EC%9C%88%EB%8F%84%EC%9A%B0%EC%97%90-%EB%8F%84%EC%BB%A4-%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%83%91-%EC%84%A4%EC%B9%98>
+> MAC <https://goddaehee.tistory.com/312>
+
+---
 
 ## infra/base-setup 디렉토리 구조
 ```
