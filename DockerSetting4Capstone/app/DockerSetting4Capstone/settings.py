@@ -29,8 +29,6 @@ DEBUG = os.getenv("DJANGO_DEBUG", "False") == True
 ALLOWED_HOSTS = ["*"]
 
 
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -52,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'Capstone2025.urls'
+ROOT_URLCONF = 'DockerSetting4Capstone.urls'
 
 TEMPLATES = [
     {
@@ -70,7 +68,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Capstone2025.wsgi.application'
+WSGI_APPLICATION = 'DockerSetting4Capstone.wsgi.application'
 
 
 # Database
