@@ -1,0 +1,10 @@
+#회원가입 테스트
+POST http://127.0.0.1:8000/api/signup/
+Content-Type: application/json
+
+{
+  "username": "jk1",
+  "email": "jk1example.com",
+  "password": "abc12345",
+  "password2": "abc12345"
+}
