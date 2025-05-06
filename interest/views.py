@@ -97,3 +97,46 @@ class ManualKeywordRecommendationView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+class ManualKeywordSaveView(APIView):
+    def post(self, request):
+        user = request.user
+        data = request.data
+
+        keywords = data.get("keywords")  # ["영화", "등산"]
+        category_name = data.get("category")  # 예: "취미"
+
+        if not keywords or not category_name:
+            return Response({"error": "카테고리와 키워드가 필요합니다."}, status=400)
+
+        # 현재 사용자가 저장한 키워드 수 체크
+        current_count = Interest.objects.filter(user=user).count()
+        if current_count >= 10:
+            return Response({"error": "최대 10개의 키워드까지만 저장할 수 있습니다."}, status=400)
+
+        # 카테고리 조회 또는 생성
+        category, _ = InterestCategory.objects.get_or_create(name=category_name)
+
+        saved_count = 0
+        for keyword in keywords:
+            if Interest.objects.filter(user=user, keyword=keyword).exists():
+                continue  # 중복 방지
+
+            if current_count + saved_count >= 10:
+                break  # 10개 초과 방지
+
+            interest = Interest.objects.create(
+                user=user,
+                keyword=keyword,
+                source="manual"
+            )
+
+            InterestKeywordCategoryMap.objects.create(
+                user=user,
+                interest=interest,
+                category=category
+            )
+
+            saved_count += 1
+
+        return Response({"message": f"{saved_count}개의 키워드를 저장했습니다."}, status=201)
