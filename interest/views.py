@@ -1,9 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .gpt_utils import extract_keywords_by_gpt
 from .models import Interest, InterestCategory, InterestKeywordCategoryMap
 from users.models import User
+from .serializers import InterestSerializer
 
 import json
 
@@ -62,3 +64,12 @@ class GPTKeywordSaveView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+class UserKeywordListView(APIView):
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 요청 가능
+
+    def get(self, request):
+        user = request.user
+        interests = Interest.objects.filter(user=user).order_by("-created_at")
+        serializer = InterestSerializer(interests, many=True)
+        return Response({"keywords": serializer.data}, status=200)
