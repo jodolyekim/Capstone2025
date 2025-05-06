@@ -1,0 +1,10 @@
+# 가상환경 폴더 무시
+venv/
+
+# Django 기본
+__pycache__/
+*.pyc
+*.sqlite3
+
+# 환경 변수 파일
+.env
