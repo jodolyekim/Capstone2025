@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -140,3 +141,36 @@ class ManualKeywordSaveView(APIView):
             saved_count += 1
 
         return Response({"message": f"{saved_count}개의 키워드를 저장했습니다."}, status=201)
+
+
+class DeleteKeywordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        keyword = request.data.get("keyword")
+        category_name = request.data.get("category")
+
+        if not keyword or not category_name:
+            return Response({"error": "키워드와 카테고리명이 필요합니다."}, status=400)
+
+        try:
+            category = InterestCategory.objects.get(name=category_name)
+            interest = Interest.objects.filter(user=user, keyword=keyword).first()
+
+            if interest:
+                InterestKeywordCategoryMap.objects.filter(
+                    user=user, interest=interest, category=category
+                ).delete()
+
+                # 만약 interest가 다른 카테고리에도 연결되어 있지 않으면 interest도 삭제
+                remaining = InterestKeywordCategoryMap.objects.filter(interest=interest)
+                if not remaining.exists():
+                    interest.delete()
+
+            return Response({"message": "키워드 삭제 완료"}, status=200)
+
+        except InterestCategory.DoesNotExist:
+            return Response({"error": "해당 카테고리가 존재하지 않습니다."}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
