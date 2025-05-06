@@ -6,6 +6,7 @@ from .gpt_utils import extract_keywords_by_gpt
 from .models import Interest, InterestCategory, InterestKeywordCategoryMap
 from users.models import User
 from .serializers import InterestSerializer
+from django.db.models import Prefetch
 
 import json
 
@@ -73,3 +74,26 @@ class UserKeywordListView(APIView):
         interests = Interest.objects.filter(user=user).order_by("-created_at")
         serializer = InterestSerializer(interests, many=True)
         return Response({"keywords": serializer.data}, status=200)
+    
+
+class ManualKeywordRecommendationView(APIView):
+    def get(self, request):
+        try:
+            data = {}
+            category_maps = InterestKeywordCategoryMap.objects.select_related(
+                "category", "interest"
+            ).distinct()
+
+            for mapping in category_maps:
+                cat_name = mapping.category.name
+                keyword = mapping.interest.keyword
+
+                if cat_name not in data:
+                    data[cat_name] = set()
+                data[cat_name].add(keyword)
+
+            json_ready = {k: list(v) for k, v in data.items()}
+            return Response(json_ready, status=200)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
