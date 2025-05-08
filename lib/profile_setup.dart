@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
+// 프로필 설정 메인 화면 (3단계 구성)
 class ProfileSetupScreen extends StatefulWidget {
-  const ProfileSetupScreen({super.key});
+  final int initialStep; // 시작할 단계
+  final Map<String, dynamic>? existingData; // 기존에 저장된 데이터
+
+  const ProfileSetupScreen({
+    super.key,
+    this.initialStep = 0,
+    this.existingData,
+  });
 
   @override
   State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
 }
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
-  int _currentStep = 0;
+  late int _currentStep;
 
+  // 사용자 입력 값들
   final _nameController = TextEditingController();
   DateTime? _birthdate;
   String? _gender;
@@ -19,20 +31,122 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Position? _location;
   double _distance = 5;
 
-  void _goNext() {
-    if (_currentStep < 13) {
-      setState(() => _currentStep++);
+  @override
+  void initState() {
+    super.initState();
+    _currentStep = widget.initialStep;
+
+    // 기존 값이 있을 경우 초기화
+    final data = widget.existingData;
+    if (data != null) {
+      _nameController.text = data['_name'] ?? '';
+      if (data['_birthYMD'] != null) {
+        _birthdate = DateTime.tryParse(data['_birthYMD']);
+      }
+      _gender = data['_gender'];
+      _orientation = data['_sex_orientation'];
+      _communicationStyles = List<String>.from(data['_communication_way'] ?? []);
+      if (data['_current_location'] != null &&
+          data['_current_location']['lat'] != null &&
+          data['_current_location']['lon'] != null) {
+        _location = Position(
+          latitude: data['_current_location']['lat'],
+          longitude: data['_current_location']['lon'],
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          altitudeAccuracy: 0,
+          headingAccuracy: 0,
+          floor: 0,
+          isMocked: false,
+        );
+      }
+      _distance = (data['_match_distance'] ?? 5).toDouble();
     }
   }
 
+  // 현재 단계의 정보를 백엔드에 저장
+  Future<void> _saveStepData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) return;
+
+    final url = Uri.parse('http://10.0.2.2:8000/api/profile/update/');
+    Map<String, dynamic> body = {};
+
+    // 단계별 요청 본문 구성
+    if (_currentStep == 0) {
+      body = {
+        '_name': _nameController.text,
+        '_birthYMD': _birthdate?.toIso8601String().split('T')[0],
+        '_gender': _gender,
+        '_sex_orientation': _orientation,
+      };
+    } else if (_currentStep == 1) {
+      body = {
+        '_communication_way': _communicationStyles,
+      };
+    } else if (_currentStep == 2) {
+      body = {
+        '_current_location': {
+          'lat': _location?.latitude,
+          'lon': _location?.longitude,
+        },
+        '_match_distance': _distance.round(),
+      };
+    }
+
+    // PATCH 요청 전송
+    await http.patch(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+  }
+
+  // 다음 단계로 이동
+  void _goNext() async {
+    await _saveStepData();
+    if (_currentStep < 2) {
+      setState(() => _currentStep++);
+    } else {
+      Navigator.pushReplacementNamed(context, '/');
+    }
+  }
+
+  // 이전 단계로 이동
   void _goBack() {
     if (_currentStep > 0) {
       setState(() => _currentStep--);
     }
   }
 
+  // 단계별 유효성 체크
+  bool _isStepValid() {
+    switch (_currentStep) {
+      case 0:
+        return _nameController.text.isNotEmpty &&
+            _birthdate != null &&
+            _gender != null &&
+            _orientation != null;
+      case 1:
+        return _communicationStyles.isNotEmpty;
+      case 2:
+        return _location != null && _distance >= 5;
+      default:
+        return true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 각 단계별 위젯 구성
     List<Widget> steps = [
       Step1BasicInfo(
         nameController: _nameController,
@@ -51,20 +165,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         selectedOptions: _communicationStyles,
         onChanged: (list) => setState(() => _communicationStyles = list),
       ),
-      Step3Location(
+      Step3LocationDistance(
         location: _location,
         onLocationRetrieved: (pos) => setState(() => _location = pos),
-      ),
-      Step4Distance(
         distance: _distance,
-        onChanged: (val) => setState(() => _distance = val),
+        onDistanceChanged: (val) => setState(() => _distance = val),
       ),
-      for (int i = 5; i <= 14; i++) PlaceholderStep(stepNumber: i),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('프로필 설정 (${_currentStep + 1}/14)'),
+        title: Text('프로필 설정 (${_currentStep + 1}/3)'),
         automaticallyImplyLeading: false,
       ),
       body: Padding(
@@ -78,7 +189,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 if (_currentStep > 0)
                   ElevatedButton(onPressed: _goBack, child: const Text('이전')),
                 ElevatedButton(
-                  onPressed: _goNext,
+                  onPressed: _isStepValid() ? _goNext : null,
                   child: Text(_currentStep == steps.length - 1 ? '완료' : '다음'),
                 ),
               ],
@@ -90,7 +201,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 }
 
-// STEP 1
+// [1단계] 이름, 생년월일, 성별, 성적 지향 입력
 class Step1BasicInfo extends StatelessWidget {
   final TextEditingController nameController;
   final DateTime? birthdate;
@@ -107,17 +218,15 @@ class Step1BasicInfo extends StatelessWidget {
     required this.onChanged,
   });
 
+  // 생일 선택 다이얼로그
   Future<void> _pickBirthdate(BuildContext context) async {
-    final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(now.year - 20),
+      initialDate: DateTime(DateTime.now().year - 20),
       firstDate: DateTime(1900),
-      lastDate: now,
+      lastDate: DateTime.now(),
     );
-    if (picked != null) {
-      onChanged(picked, gender, orientation);
-    }
+    if (picked != null) onChanged(picked, gender, orientation);
   }
 
   @override
@@ -126,34 +235,36 @@ class Step1BasicInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(controller: nameController, decoration: const InputDecoration(labelText: '이름')),
-        const SizedBox(height: 12),
-        ElevatedButton(onPressed: () => _pickBirthdate(context), child: const Text('생년월일 선택')),
-        if (birthdate != null) Text('선택한 날짜: ${birthdate!.toLocal().toIso8601String().split("T")[0]}'),
-        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: () => _pickBirthdate(context),
+          child: const Text('생년월일 선택'),
+        ),
+        if (birthdate != null)
+          Text('선택한 날짜: ${birthdate!.toLocal().toIso8601String().split("T")[0]}'),
         const Text('성별 선택'),
-        ...['남성', '여성', '기타'].map(
-          (val) => RadioListTile(
-            value: val,
-            groupValue: gender,
-            title: Text(val),
-            onChanged: (v) => onChanged(birthdate, v, orientation),
-          ),
-        ),
+        ...['남성', '여성'].map((val) => RadioListTile(
+              value: val,
+              groupValue: gender,
+              title: Text(val),
+              onChanged: (v) => onChanged(birthdate, v, orientation),
+            )),
         const Text('성적 지향'),
-        ...['이성애', '동성애', '양성애', '기타'].map(
-          (val) => RadioListTile(
-            value: val,
-            groupValue: orientation,
-            title: Text(val),
-            onChanged: (v) => onChanged(birthdate, gender, v),
-          ),
-        ),
+        ...[
+          '이성을 만나고 싶어요',
+          '동성을 만나고 싶어요',
+          '모두 만나고 싶어요'
+        ].map((val) => RadioListTile(
+              value: val,
+              groupValue: orientation,
+              title: Text(val),
+              onChanged: (v) => onChanged(birthdate, gender, v),
+            )),
       ],
     );
   }
 }
 
-// STEP 2
+// [2단계] 커뮤니케이션 스타일 선택 (복수 선택 가능)
 class Step2Communication extends StatelessWidget {
   final List<String> selectedOptions;
   final ValueChanged<List<String>> onChanged;
@@ -166,11 +277,22 @@ class Step2Communication extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final options = ['글로 대화하기', '천천히 말해주기', '눈 마주치지 않기', '이미지로 표현하기'];
+    final options = [
+      '짧은 문장으로 대화하고 싶어요',
+      '답장이 빠르면 좋겠어요',
+      '답장이 느려도 괜찮아요',
+      '관심사만 이야기 하고 싶어요',
+      '천천히 알아가고 싶어요',
+      '대화가 끊기기 전에 미리 말해줬으면 좋겠어요',
+      '문자로 대화하는 걸 좋아해요',
+      '부드럽게 대화하고 싶어요',
+      '서로의 말에 공감의 메시지를 주고받고 싶어요'
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('커뮤니케이션 선호 방식 (복수 선택 가능)'),
+        const Text('채팅 시 선호하는 대화 방식 (복수 선택 가능)'),
         ...options.map((option) => CheckboxListTile(
               title: Text(option),
               value: selectedOptions.contains(option),
@@ -185,24 +307,28 @@ class Step2Communication extends StatelessWidget {
   }
 }
 
-// STEP 3
-class Step3Location extends StatelessWidget {
+// [3단계] 위치 권한 요청 및 거리 설정
+class Step3LocationDistance extends StatelessWidget {
   final Position? location;
   final ValueChanged<Position> onLocationRetrieved;
+  final double distance;
+  final ValueChanged<double> onDistanceChanged;
 
-  const Step3Location({
+  const Step3LocationDistance({
     super.key,
     required this.location,
     required this.onLocationRetrieved,
+    required this.distance,
+    required this.onDistanceChanged,
   });
 
+  // 위치 권한 요청 및 현재 위치 가져오기
   Future<void> _getLocation(BuildContext context) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       await Geolocator.openLocationSettings();
       return;
     }
-
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -210,7 +336,6 @@ class Step3Location extends StatelessWidget {
         return;
       }
     }
-
     final position = await Geolocator.getCurrentPosition();
     onLocationRetrieved(position);
   }
@@ -220,51 +345,24 @@ class Step3Location extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('위치 권한 및 GPS 정보 수집'),
+        const Text('위치 권한 및 매칭 거리 설정'),
         ElevatedButton(onPressed: () => _getLocation(context), child: const Text('내 위치 불러오기')),
-        if (location != null) Text('위도: ${location!.latitude}, 경도: ${location!.longitude}'),
-      ],
-    );
-  }
-}
-
-// STEP 4
-class Step4Distance extends StatelessWidget {
-  final double distance;
-  final ValueChanged<double> onChanged;
-
-  const Step4Distance({
-    super.key,
-    required this.distance,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('매칭 희망 거리 (km)'),
+        if (location != null)
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text('✅ 위치 설정이 완료되었습니다.', style: TextStyle(color: Colors.green)),
+          ),
+        const Text('매칭 희망 거리 (5km ~ 600km)'),
         Slider(
           value: distance,
           min: 5,
           max: 600,
           divisions: 119,
           label: '${distance.round()} km',
-          onChanged: onChanged,
+          onChanged: onDistanceChanged,
         ),
+        Text('현재 선택: ${distance.round()} km'),
       ],
     );
-  }
-}
-
-// STEP 5~14 껍데기용
-class PlaceholderStep extends StatelessWidget {
-  final int stepNumber;
-  const PlaceholderStep({super.key, required this.stepNumber});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('스텝 $stepNumber 내용 (UI만 표시됨)'));
   }
 }

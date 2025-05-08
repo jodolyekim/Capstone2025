@@ -1,24 +1,24 @@
+name: signup_n_login_ui                # 프로젝트 이름
+description: A new Flutter project.   # 프로젝트 설명
 
-name: signup_n_login_ui
-description: A new Flutter project.
-
-publish_to: 'none'
-version: 1.0.0+1
+publish_to: 'none'                    # pub.dev에 퍼블리시하지 않음
+version: 1.0.0+1                      # 앱 버전 (버전명+빌드번호)
 
 environment:
-  sdk: ">=2.19.0 <3.0.0"
+  sdk: ">=2.19.0 <3.0.0"              # Dart SDK 버전 조건
 
 dependencies:
   flutter:
-    sdk: flutter
-  cupertino_icons: ^1.0.8
-  http: ^0.13.6
-  geolocator: ^10.1.0
-  image_picker: ^1.0.4
+    sdk: flutter                     # Flutter SDK 의존성
+  cupertino_icons: ^1.0.8            # iOS 스타일 아이콘 지원
+  shared_preferences: ^2.2.2         # 로컬에 간단한 데이터 저장 (토큰 저장 등에 사용)
+  http: ^0.13.6                      # HTTP 요청을 보낼 때 사용
+  geolocator: ^10.1.0                # 위치 정보 권한 요청 및 GPS 좌표 획득
+  image_picker: ^1.0.4               # 갤러리/카메라에서 이미지 선택 (프로필 사진용)
 
 dev_dependencies:
   flutter_test:
-    sdk: flutter
+    sdk: flutter                     # 테스트 코드 작성 시 필요한 Flutter 테스트 도구
 
 flutter:
-  uses-material-design: true
+  uses-material-design: true         # 머티리얼 디자인 사용 선언 (UI 컴포넌트 사용 가능)
