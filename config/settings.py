@@ -2,14 +2,11 @@ from pathlib import Path
 import os
 from datetime import timedelta
 
-# 경로 설정
+# 프로젝트 기본 디렉터리
 BASE_DIR = Path(__file__).resolve().parent.parent
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-STATIC_URL = 'static/'
 
-# 보안
-SECRET_KEY = 'django-insecure-iiu#zco^p21f1qpumb#b&&z7016r*ueh1haj-^3j#441)*qka*'
+# 보안 설정
+SECRET_KEY = 'django-insecure-ykz*hh-f%1*deiuzu#x#blt@0zi0y2$g%95beccq27^o6ona6!'
 DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2']
 
@@ -23,12 +20,22 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'corsheaders',
     'users',
-    'db_users',
 ]
 
-# 미들웨어
+# CORS 설정 (Flutter와 통신 허용)
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://10.0.2.2:3000",
+    "http://localhost:8000",
+    "http://10.0.2.2:8000",
+]
+
+# 미들웨어 설정
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -41,6 +48,7 @@ MIDDLEWARE = [
 # URL 설정
 ROOT_URLCONF = 'config.urls'
 
+# 템플릿 설정
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -56,9 +64,10 @@ TEMPLATES = [
     },
 ]
 
+# WSGI 설정
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# 데이터베이스
+# 데이터베이스 설정
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -66,7 +75,7 @@ DATABASES = {
     }
 }
 
-# 비밀번호 검증기
+# 비밀번호 유효성 검사기
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -80,24 +89,34 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# 기본 모델 설정
+# 정적 및 미디어 파일 설정
+STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# 기본 필드 타입
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 사용자 모델 지정
 AUTH_USER_MODEL = 'users.CustomUser'
 
-# ✅ 인증 백엔드: 이메일 로그인 허용
+# 인증 백엔드 설정
 AUTHENTICATION_BACKENDS = [
-    'users.backends.EmailBackend',  # email 기반 로그인
-    'django.contrib.auth.backends.ModelBackend',  # 기본 username 로그인도 지원
+    'users.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
-# ✅ JWT 인증 설정
+# REST 프레임워크 설정
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
 }
 
-# ✅ JWT 토큰 만료 시간 설정 (원하면 조절 가능)
+# JWT 설정
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),

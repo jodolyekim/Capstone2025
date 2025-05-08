@@ -5,18 +5,14 @@ from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    
-    # 🔹 내 로그인/회원가입 API
-    path('api/', include('users.urls')),
+    path('admin/', admin.site.urls),  # Django 기본 관리자 페이지
 
-    # 🔹 GitHub에서 가져온 DB 구조 API
-    path('api/', include('db_users.urls')),
+    path('api/', include('users.urls')),  # 사용자 관련 API (회원가입, 로그인 등)
 
-    # 🔹 JWT 토큰 관련 엔드포인트
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # JWT access/refresh 토큰 발급
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # refresh 토큰을 이용한 access 재발급
 ]
 
+# 개발 환경일 때만 미디어 파일 서빙 허용
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

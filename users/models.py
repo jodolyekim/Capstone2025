@@ -2,8 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 
-
-# 사용자 매니저
+# 사용자 정의 매니저: 이메일 기반 사용자 생성 로직 정의
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
@@ -25,12 +24,11 @@ class UserManager(BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
         return self.create_user(email, password, **extra_fields)
 
-
-# 사용자 모델
+# 커스텀 유저 모델 (기본 username 제거, 이메일 기반 로그인)
 class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
-    is_profile_set = models.BooleanField(default=False)
+    is_profile_set = models.BooleanField(default=False)  # 프로필 설정 여부 저장
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -40,37 +38,38 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
-
-# 프로필 모델
+# 사용자 프로필 모델 (추가 정보 포함)
 class Profile(models.Model):
-    GENDER_CHOICES = [('M', '남성'), ('F', '여성'), ('O', '기타')]
-    ORIENTATION_CHOICES = [('HETERO', '이성애'), ('HOMO', '동성애'), ('BI', '양성애'), ('OTHER', '기타')]
-    COMMUNICATION_CHOICES = [('TEXT', '글로 대화하기'), ('SLOW_SPEECH', '천천히 말해주기'), ('VOICE', '음성 대화')]
-
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
-    birthdate = models.DateField()
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    sexual_orientation = models.CharField(max_length=10, choices=ORIENTATION_CHOICES)
-    communication_styles = models.JSONField(default=list)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
-    distance_preference_km = models.IntegerField(default=5)
-    photo_urls = models.JSONField(default=list)
-    bio = models.TextField(max_length=300)
-    keywords = models.JSONField(default=list)
-    guardian_name = models.CharField(max_length=100)
-    guardian_birthdate = models.DateField()
-    guardian_phone = models.CharField(max_length=20)
-    guardian_relationship = models.CharField(max_length=50)
-    guardian_documents = models.JSONField(default=dict)
-    guardian_agreement = models.BooleanField(default=False)
-    is_verified = models.BooleanField(default=False)
+
+    # 기본 정보
+    _name = models.CharField(max_length=50, blank=True, null=True)
+    _birthYMD = models.DateField(blank=True, null=True)
+    _gender = models.CharField(max_length=10, blank=True, null=True)
+    _sex_orientation = models.CharField(max_length=20, blank=True, null=True)
+
+    # 선호 커뮤니케이션 방식 (리스트 형태)
+    _communication_way = models.JSONField(default=list, blank=True)
+
+    # 위치 정보 및 매칭 거리
+    _current_location_lat = models.FloatField(null=True, blank=True)
+    _current_location_lon = models.FloatField(null=True, blank=True)
+    _match_distance = models.IntegerField(default=5, null=True, blank=True)
+
+    # 보호자 정보
+    _protector_info_name = models.CharField(max_length=100, default='홍길동')
+    _protector_info_birth_date = models.DateField(null=True, blank=True)
+    _protector_info_phone = models.CharField(max_length=20, default='010-0000-0000')
+    _protector_info_relationship = models.CharField(max_length=50, default='보호자')
 
     def __str__(self):
-        return f"{self.user.email}'s Profile"
+        return f"{self.user.email}의 프로필"
 
+    def is_complete(self):
+        """ 프로필이 완전히 작성되었는지 여부 반환 """
+        return bool(self._name and self._birthYMD and self._gender and self._sex_orientation)
 
-# 보호자
+# 보호자 모델 (사용자와 다대일 관계)
 class Guardian(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='guardians')
     name = models.CharField(max_length=50)
@@ -80,44 +79,38 @@ class Guardian(models.Model):
     family_certificate_url = models.URLField()
     disability_certificate_url = models.URLField()
 
-
-# 사용자 사진
+# 사용자 업로드 사진
 class Photo(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='photos')
     photo_url = models.URLField()
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-
-# 관심사 카테고리
+# 관심사 카테고리 (음악, 게임 등)
 class InterestCategory(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
 
-
-# 관심 키워드
+# 사용자 관심 키워드 (자유 입력 또는 GPT 추천 기반)
 class Interest(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='interests')
     keyword = models.CharField(max_length=100)
     source = models.CharField(max_length=20)
-
 
 # 키워드와 카테고리 매핑
 class InterestKeywordCategoryMap(models.Model):
     interest = models.ForeignKey(Interest, on_delete=models.CASCADE, related_name='category_mappings')
     category = models.ForeignKey(InterestCategory, on_delete=models.CASCADE, related_name='interest_mappings')
 
-
-# GPT 제안 키워드
+# GPT 기반 추천 키워드
 class SuggestedInterest(models.Model):
     keyword = models.CharField(max_length=50)
     category = models.ForeignKey(InterestCategory, on_delete=models.CASCADE, related_name='suggested_interests')
     display_order = models.IntegerField()
     is_active = models.BooleanField(default=True)
 
-
-# 매칭
+# 매칭 정보 (user1, user2는 CustomUser)
 class Match(models.Model):
     user1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='matches_as_user1')
     user2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='matches_as_user2')
@@ -127,31 +120,27 @@ class Match(models.Model):
     matched_at = models.DateTimeField(null=True, blank=True)
     requested_at = models.DateTimeField(auto_now_add=True)
 
-
-# 채팅방
+# 매칭 후 생성되는 채팅방
 class ChatRoom(models.Model):
     match = models.OneToOneField(Match, on_delete=models.CASCADE, related_name='chatroom')
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     last_message_at = models.DateTimeField(null=True, blank=True)
 
-
-# 메시지
+# 채팅 메시지
 class Message(models.Model):
     room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='sent_messages')
     content = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
-    message_type = models.CharField(max_length=20, default='text')
+    message_type = models.CharField(max_length=20, default='text')  # 'text', 'image' 등
 
-
-# 자동 종료 메시지
+# 시스템 자동 종료 메시지
 class AutoCloseMessage(models.Model):
     content = models.TextField()
     is_default = models.BooleanField(default=True)
 
-
-# 욕설 필터 로그
+# 욕설 필터 로그 (어떤 유저가 어떤 욕을 언제 썼는지 저장)
 class BadWordsLog(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='badwords_logs')
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='badwords')
