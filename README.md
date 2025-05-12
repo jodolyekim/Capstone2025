@@ -21,12 +21,13 @@ Django, PostgreSQL, Redis를 기반으로 한 개발 환경을 Docker로 구성�
 
 ## infra/base-setup 디렉토리 구조
 ```
-DockerSetting4Capstone
-├── app/                  # 실제 소스코드
-│ ├── manage.py           
-│ └── DockerSetting4Capstone/	        		
-│   ├── settings.py
-│   └── ...            
+NewVersionDocker         
+├── config/               # settings.py 포함된 디렉토리
+│ ├── settings.py           
+│ └── ...
+├── app/                  # 애플리케이션 디렉토리 위치 (현재 디렉토리에서는 없음)
+│ ├── manage.py           # manage.py는 현재 애플리케이션이 없기 때문에 루트 디렉토리(NewVersionDocker)에 존재함  
+│ └── ...  
 ├── Dockerfile            # 실행 환경 정의
 ├── docker-compose.yml    # 전체 서비스 구성
 ├── requirements.txt      # 의존성 목록  
