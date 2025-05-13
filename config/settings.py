@@ -1,8 +1,8 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from datetime import timedelta
 
-# 프로젝트 기본 디렉터리
+# 기본 디렉토리 설정
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 보안 설정
@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-ykz*hh-f%1*deiuzu#x#blt@0zi0y2$g%95beccq27^o6ona6!
 DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2']
 
-# 앱 등록
+# 앱 설정
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -22,9 +22,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'users',
+    'chat',        # ✅ 채팅 앱
+    'channels',    # ✅ Django Channels (WebSocket 처리)
 ]
 
-# CORS 설정 (Flutter와 통신 허용)
+# CORS 설정 - Flutter 연동용
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -64,8 +66,19 @@ TEMPLATES = [
     },
 ]
 
-# WSGI 설정
+# WSGI/ASGI 설정
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'  # ✅ WebSocket용
+
+# ✅ Redis 기반 Django Channels 설정
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # 데이터베이스 설정
 DATABASES = {
@@ -75,7 +88,7 @@ DATABASES = {
     }
 }
 
-# 비밀번호 유효성 검사기
+# 비밀번호 검증
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -83,30 +96,32 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# 국제화
+# 국제화 설정
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# 정적 및 미디어 파일 설정
-STATIC_URL = 'static/'
+# ✅ 정적/미디어 파일 설정
+STATIC_URL = '/static/'  # ✅ 반드시 '/' 포함할 것
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # ✅ collectstatic 결과 저장 경로
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # 기본 필드 타입
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# 사용자 모델 지정
+# 사용자 모델
 AUTH_USER_MODEL = 'users.CustomUser'
 
-# 인증 백엔드 설정
+# 인증 백엔드
 AUTHENTICATION_BACKENDS = [
     'users.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# REST 프레임워크 설정
+# Django REST Framework 설정
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
