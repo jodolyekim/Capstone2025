@@ -1,0 +1,174 @@
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from users.utils.gpt_utils import extract_keywords_by_gpt
+from .models import Interest, InterestCategory, InterestKeywordCategoryMap
+from users.models import CustomUser
+from .serializers import InterestSerializer
+from django.db.models import Prefetch
+
+import json
+
+
+class GPTKeywordExtractionView(APIView):
+    def post(self, request):
+        intro_text = request.data.get("intro_text")
+        if not intro_text:
+            return Response({"error": "자기소개 텍스트가 필요합니다."}, status=400)
+
+        try:
+            result = extract_keywords_by_gpt(intro_text)
+            return Response({"result": result}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+
+class GPTKeywordSaveView(APIView):
+    def post(self, request):
+        user = request.user
+        intro_text = request.data.get("intro_text")
+
+        if not intro_text:
+            return Response({"error": "자기소개 텍스트가 필요합니다."}, status=400)
+
+        try:
+            result_str = extract_keywords_by_gpt(intro_text)
+            result_json = json.loads(result_str)
+
+            for category_name, keywords in result_json.items():
+                category, _ = InterestCategory.objects.get_or_create(name=category_name)
+
+                for keyword in keywords:
+                    interest, _ = Interest.objects.get_or_create(
+                        user=user,
+                        keyword=keyword,
+                        defaults={"source": "gpt"}
+                    )
+
+                    # 중복 연결 방지
+                    already_exists = InterestKeywordCategoryMap.objects.filter(
+                        interest__user=user,
+                        interest=interest,
+                        category=category
+                    ).exists()
+
+                    if not already_exists:
+                        InterestKeywordCategoryMap.objects.create(
+                            interest=interest,
+                            category=category
+                        )
+
+            return Response({"message": "키워드 저장 완료!"}, status=201)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+
+class UserKeywordListView(APIView):
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 요청 가능
+
+    def get(self, request):
+        user = request.user
+        interests = Interest.objects.filter(user=user).order_by("-created_at")
+        serializer = InterestSerializer(interests, many=True)
+        return Response({"keywords": serializer.data}, status=200)
+
+
+class ManualKeywordRecommendationView(APIView):
+    def get(self, request):
+        try:
+            data = {}
+            category_maps = InterestKeywordCategoryMap.objects.select_related(
+                "category", "interest"
+            ).distinct()
+
+            for mapping in category_maps:
+                cat_name = mapping.category.name
+                keyword = mapping.interest.keyword
+
+                if cat_name not in data:
+                    data[cat_name] = set()
+                data[cat_name].add(keyword)
+
+            json_ready = {k: list(v) for k, v in data.items()}
+            return Response(json_ready, status=200)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+
+class ManualKeywordSaveView(APIView):
+    def post(self, request):
+        user = request.user
+        data = request.data
+
+        keywords = data.get("keywords")  # ["영화", "등산"]
+        category_name = data.get("category")  # 예: "취미"
+
+        if not keywords or not category_name:
+            return Response({"error": "카테고리와 키워드가 필요합니다."}, status=400)
+
+        # 현재 사용자가 저장한 키워드 수 체크
+        current_count = Interest.objects.filter(user=user).count()
+        if current_count >= 10:
+            return Response({"error": "최대 10개의 키워드까지만 저장할 수 있습니다."}, status=400)
+
+        # 카테고리 조회 또는 생성
+        category, _ = InterestCategory.objects.get_or_create(name=category_name)
+
+        saved_count = 0
+        for keyword in keywords:
+            if Interest.objects.filter(user=user, keyword=keyword).exists():
+                continue  # 중복 방지
+
+            if current_count + saved_count >= 10:
+                break  # 10개 초과 방지
+
+            interest = Interest.objects.create(
+                user=user,
+                keyword=keyword,
+                source="manual"
+            )
+
+            InterestKeywordCategoryMap.objects.create(
+                interest=interest,
+                category=category
+            )
+
+            saved_count += 1
+
+        return Response({"message": f"{saved_count}개의 키워드를 저장했습니다."}, status=201)
+
+
+class DeleteKeywordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        keyword = request.data.get("keyword")
+        category_name = request.data.get("category")
+
+        if not keyword or not category_name:
+            return Response({"error": "키워드와 카테고리명이 필요합니다."}, status=400)
+
+        try:
+            category = InterestCategory.objects.get(name=category_name)
+            interest = Interest.objects.filter(user=user, keyword=keyword).first()
+
+            if interest:
+                InterestKeywordCategoryMap.objects.filter(
+                    interest__user=user, interest=interest, category=category
+                ).delete()
+
+                # 만약 interest가 다른 카테고리에도 연결되어 있지 않으면 interest도 삭제
+                remaining = InterestKeywordCategoryMap.objects.filter(interest=interest)
+                if not remaining.exists():
+                    interest.delete()
+
+            return Response({"message": "키워드 삭제 완료"}, status=200)
+
+        except InterestCategory.DoesNotExist:
+            return Response({"error": "해당 카테고리가 존재하지 않습니다."}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
