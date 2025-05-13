@@ -70,45 +70,42 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   // 현재 단계의 정보를 백엔드에 저장
   Future<void> _saveStepData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    if (token == null) return;
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) return;
 
-    final url = Uri.parse('http://10.0.2.2:8000/api/profile/update/');
-    Map<String, dynamic> body = {};
+  final url = Uri.parse('http://10.0.2.2:8000/api/profile/update/');
+  Map<String, dynamic> body = {};
 
-    // 단계별 요청 본문 구성
-    if (_currentStep == 0) {
-      body = {
-        '_name': _nameController.text,
-        '_birthYMD': _birthdate?.toIso8601String().split('T')[0],
-        '_gender': _gender,
-        '_sex_orientation': _orientation,
-      };
-    } else if (_currentStep == 1) {
-      body = {
-        '_communication_way': _communicationStyles,
-      };
-    } else if (_currentStep == 2) {
-      body = {
-        '_current_location': {
-          'lat': _location?.latitude,
-          'lon': _location?.longitude,
-        },
-        '_match_distance': _distance.round(),
-      };
-    }
-
-    // PATCH 요청 전송
-    await http.patch(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(body),
-    );
+  if (_currentStep == 0) {
+    body = {
+      '_name': _nameController.text,
+      '_birthYMD': _birthdate?.toIso8601String().split('T')[0],
+      '_gender': _gender,
+      '_sex_orientation': _orientation,
+    };
+  } else if (_currentStep == 1) {
+    body = {
+      '_communication_way': _communicationStyles,
+    };
+  } else if (_currentStep == 2) {
+    body = {
+      '_current_location_lat': _location?.latitude,
+      '_current_location_lon': _location?.longitude,
+      '_match_distance': _distance.round(),
+    };
   }
+
+  await http.patch(
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode(body),
+  );
+}
+
 
   // 다음 단계로 이동
   void _goNext() async {

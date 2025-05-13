@@ -15,6 +15,7 @@ dependencies:
   http: ^0.13.6                      # HTTP 요청을 보낼 때 사용
   geolocator: ^10.1.0                # 위치 정보 권한 요청 및 GPS 좌표 획득
   image_picker: ^1.0.4               # 갤러리/카메라에서 이미지 선택 (프로필 사진용)
+  web_socket_channel: ^2.4.0         # ✅ WebSocket 지원 추가 (채팅용)
 
 dev_dependencies:
   flutter_test:
