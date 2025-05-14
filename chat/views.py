@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from chat.utils.gpt_judge import is_sensitive_message
 from chat.utils.message_filtering import detect_message_reason, REASON_MESSAGES
+from alerts.utils import notify_guardian_if_needed  # 상단에 추가
 
 
 @api_view(['POST'])
@@ -15,20 +16,30 @@ def upload_image(request):
     이미지 파일을 업로드받아 서버에 저장하고, 접근 가능한 URL을 반환합니다.
     텍스트 설명 없이 이미지 자체만 업로드 가능 (필터링 없음)
     """
+
     image_file = request.FILES.get('image')
     if not image_file:
         return Response({'error': '이미지 파일이 없습니다.'}, status=400)
 
+    # 파일명 생성
     extension = image_file.name.split('.')[-1]
     filename = f"{uuid.uuid4()}.{extension}"
     filepath = os.path.join(settings.MEDIA_ROOT, filename)
 
+    # 파일 저장
     with open(filepath, 'wb+') as destination:
         for chunk in image_file.chunks():
             destination.write(chunk)
 
+    # 이미지 URL 생성
     image_url = request.build_absolute_uri(f"{settings.MEDIA_URL}{filename}")
+
+    # ✅ 보호자 알림 호출
+    notify_guardian_if_needed(request.user)
+
     return Response({'image_url': image_url}, status=200)
+
+
 
 
 @api_view(['POST'])
