@@ -12,7 +12,7 @@ send_image_url           : Django 페이지에 이미지 직접 업로드
 ### pubspec.yaml의 dependencies에 추가
 
 
-```
+```yaml 
   firebase_auth: ^6.0.2
   firebase_core: ^3.0.0
   firebase_storage: ^12.0.0
