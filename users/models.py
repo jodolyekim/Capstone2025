@@ -29,9 +29,8 @@ class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
-    
-    created_at = models.DateTimeField(auto_now_add=True)  # ✅ 이 줄 추가!
 
+    created_at = models.DateTimeField(auto_now_add=True)  # ✅ 가입 시각
     is_active = models.BooleanField(default=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
     approval_status = models.CharField(max_length=20, default='pending')
@@ -41,6 +40,18 @@ class CustomUser(AbstractUser):
 
     objects = UserManager()
 
+    @property
+    def is_profile_set(self):
+        try:
+            profile = self.profile
+            return bool(
+                profile._name and
+                profile._birthYMD and
+                profile._gender and
+                profile._sex_orientation
+            )
+        except:
+            return False
 
 # 사용자 프로필 모델 (추가 정보 포함)
 class Profile(models.Model):
@@ -70,7 +81,6 @@ class Profile(models.Model):
         return f"{self.user.email}의 프로필"
 
     def is_complete(self):
-        """ 프로필이 완전히 작성되었는지 여부 반환 """
         return bool(self._name and self._birthYMD and self._gender and self._sex_orientation)
 
 # 보호자 모델 (사용자와 다대일 관계)
@@ -137,7 +147,7 @@ class Message(models.Model):
     sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='sent_messages')
     content = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
-    message_type = models.CharField(max_length=20, default='text')  # 'text', 'image' 등
+    message_type = models.CharField(max_length=20, default='text')
 
 # 시스템 자동 종료 메시지
 class AutoCloseMessage(models.Model):
