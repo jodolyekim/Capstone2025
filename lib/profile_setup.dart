@@ -3,11 +3,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'guardian.dart';
+import 'guardian_upload.dart';
 
-// 프로필 설정 메인 화면 (3단계 구성)
 class ProfileSetupScreen extends StatefulWidget {
-  final int initialStep; // 시작할 단계
-  final Map<String, dynamic>? existingData; // 기존에 저장된 데이터
+  final int initialStep;
+  final Map<String, dynamic>? existingData;
 
   const ProfileSetupScreen({
     super.key,
@@ -22,7 +23,6 @@ class ProfileSetupScreen extends StatefulWidget {
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   late int _currentStep;
 
-  // 사용자 입력 값들
   final _nameController = TextEditingController();
   DateTime? _birthdate;
   String? _gender;
@@ -35,8 +35,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   void initState() {
     super.initState();
     _currentStep = widget.initialStep;
-
-    // 기존 값이 있을 경우 초기화
     final data = widget.existingData;
     if (data != null) {
       _nameController.text = data['_name'] ?? '';
@@ -68,7 +66,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
   }
 
-  // 현재 단계의 정보를 백엔드에 저장
   Future<void> _saveStepData() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
@@ -77,7 +74,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final url = Uri.parse('http://10.0.2.2:8000/api/profile/update/');
     Map<String, dynamic> body = {};
 
-    // 단계별 요청 본문 구성
     if (_currentStep == 0) {
       body = {
         '_name': _nameController.text,
@@ -91,15 +87,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       };
     } else if (_currentStep == 2) {
       body = {
-        '_current_location': {
-          'lat': _location?.latitude,
-          'lon': _location?.longitude,
-        },
+        '_current_location_lat': _location?.latitude,
+        '_current_location_lon': _location?.longitude,
         '_match_distance': _distance.round(),
       };
     }
 
-    // PATCH 요청 전송
     await http.patch(
       url,
       headers: {
@@ -110,24 +103,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  // 다음 단계로 이동
   void _goNext() async {
     await _saveStepData();
-    if (_currentStep < 2) {
+    if (_currentStep < 4) {
       setState(() => _currentStep++);
     } else {
       Navigator.pushReplacementNamed(context, '/');
     }
   }
 
-  // 이전 단계로 이동
   void _goBack() {
     if (_currentStep > 0) {
       setState(() => _currentStep--);
     }
   }
 
-  // 단계별 유효성 체크
   bool _isStepValid() {
     switch (_currentStep) {
       case 0:
@@ -146,7 +136,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 각 단계별 위젯 구성
     List<Widget> steps = [
       Step1BasicInfo(
         nameController: _nameController,
@@ -171,11 +160,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         distance: _distance,
         onDistanceChanged: (val) => setState(() => _distance = val),
       ),
+      GuardianInfoStep(
+        onNext: () => setState(() => _currentStep++),
+        onBack: _goBack,
+      ),
+      GuardianUploadStep(
+        onFinish: () => Navigator.pushReplacementNamed(context, '/'),
+      ),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('프로필 설정 (${_currentStep + 1}/3)'),
+        title: Text('프로필 설정 (${_currentStep + 1}/${steps.length})'),
         automaticallyImplyLeading: false,
       ),
       body: Padding(
@@ -183,23 +179,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         child: Column(
           children: [
             Expanded(child: steps[_currentStep]),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (_currentStep > 0)
-                  ElevatedButton(onPressed: _goBack, child: const Text('이전')),
-                ElevatedButton(
-                  onPressed: _isStepValid() ? _goNext : null,
-                  child: Text(_currentStep == steps.length - 1 ? '완료' : '다음'),
-                ),
-              ],
-            )
+            if (_currentStep < 3)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (_currentStep > 0)
+                    ElevatedButton(onPressed: _goBack, child: const Text('이전')),
+                  ElevatedButton(
+                    onPressed: _isStepValid() ? _goNext : null,
+                    child: Text('다음'),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
     );
   }
 }
+
+
 
 // [1단계] 이름, 생년월일, 성별, 성적 지향 입력
 class Step1BasicInfo extends StatelessWidget {

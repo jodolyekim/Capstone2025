@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'chat/chat_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,18 +12,17 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController(); // 이메일 입력 필드 컨트롤러
-  final _passwordController = TextEditingController(); // 비밀번호 입력 필드 컨트롤러
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  String error = ''; // 에러 메시지 출력용
-  bool showProfilePrompt = false; // 프로필 설정 유도 메시지 표시 여부
-  String accessToken = ''; // 로그인 후 저장할 JWT access token
-  Map<String, dynamic>? savedProfile; // 기존 프로필 정보 저장용
+  String error = '';
+  bool showProfilePrompt = false;
+  String accessToken = '';
+  Map<String, dynamic>? savedProfile;
 
-  // 로그인 처리 함수
   Future<void> login() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('accessToken'); // 기존 토큰 제거
+    await prefs.remove('accessToken');
 
     final email = _emailController.text.trim();
     final password = _passwordController.text;
@@ -39,10 +39,9 @@ class _LoginPageState extends State<LoginPage> {
       accessToken = responseData['access'];
       final hasProfile = responseData['is_profile_set'] ?? false;
 
-      await prefs.setString('accessToken', accessToken); // 토큰 저장
+      await prefs.setString('accessToken', accessToken);
 
       if (!hasProfile) {
-        // 프로필 미완료인 경우, 기존 정보 불러오기
         final profileRes = await http.get(
           Uri.parse('http://10.0.2.2:8000/api/profile/'),
           headers: {'Authorization': 'Bearer $accessToken'},
@@ -59,28 +58,39 @@ class _LoginPageState extends State<LoginPage> {
           });
         }
       } else {
-        // 로그인 성공 시 홈으로 이동
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("로그인 성공!")),
         );
-        Navigator.pushReplacementNamed(context, '/');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(userEmail: email),
+          ),
+        );
       }
     } else {
-      // 로그인 실패 시 백엔드에서 보낸 에러 메시지 출력
       String message = '로그인 실패';
       try {
         final data = json.decode(utf8.decode(res.bodyBytes));
-        if (data is Map) {
-          if (data.containsKey('email')) {
-            message = data['email'][0];
-          } else if (data.containsKey('password')) {
-            message = data['password'][0];
-          } else if (data.containsKey('detail')) {
-            message = data['detail'];
+        print("🔴 서버 응답: $data");
+
+        final possibleKeys = ['email', 'password', 'non_field_errors', 'detail', 'error'];
+        for (final key in possibleKeys) {
+          if (data.containsKey(key)) {
+            final value = data[key];
+            if (value is List && value.isNotEmpty) {
+              message = value[0].toString();
+            } else if (value is String) {
+              message = value;
+            } else {
+              message = value.toString();
+            }
+            break;
           }
         }
-      } catch (_) {
-        message = '로그인 중 오류가 발생했습니다.';
+      } catch (e) {
+        print("⚠️ 에러 메시지 파싱 실패: $e");
+        message = '서버 응답 해석 실패';
       }
 
       setState(() {
@@ -90,13 +100,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // 프로필 설정 화면으로 이동
   void proceedToProfileSetup() {
     if (savedProfile == null) return;
 
     int nextStep = 0;
 
-    // 현재 단계 계산
     if (savedProfile!['_name'] != null &&
         savedProfile!['_birthYMD'] != null &&
         savedProfile!['_gender'] != null &&
@@ -115,7 +123,6 @@ class _LoginPageState extends State<LoginPage> {
       nextStep = 3;
     }
 
-    // 프로필 설정 화면으로 이동
     Navigator.pushReplacementNamed(
       context,
       '/profile-setup',
