@@ -28,15 +28,19 @@ class UserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
-    is_profile_set = models.BooleanField(default=False)  # 프로필 설정 여부 저장
+    password = models.CharField(max_length=255)
+    
+    created_at = models.DateTimeField(auto_now_add=True)  # ✅ 이 줄 추가!
+
+    is_active = models.BooleanField(default=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    approval_status = models.CharField(max_length=20, default='pending')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = UserManager()
 
-    def __str__(self):
-        return self.email
 
 # 사용자 프로필 모델 (추가 정보 포함)
 class Profile(models.Model):
