@@ -1,12 +1,15 @@
-import os
 from pathlib import Path
+import os
 from datetime import timedelta
 
-# 프로젝트 기본 디렉토리
+# 경로 설정
 BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_URL = 'static/'
 
-# 보안 설정
-SECRET_KEY = 'django-insecure-ykz*hh-f%1*deiuzu#x#blt@0zi0y2$g%95beccq27^o6ona6!'
+# 보안
+SECRET_KEY = 'django-insecure-iiu#zco^p21f1qpumb#b&&z7016r*ueh1haj-^3j#441)*qka*'
 DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2']
 
@@ -20,25 +23,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'corsheaders',
-    'users',
-    'chat',        # ✅ 채팅 앱
-    'channels',    # ✅ Django Channels (WebSocket 처리)
-    'alerts',      # ✅ 보호자 알림 앱
+    'users',  # ✅ 병합된 앱만 유지
 ]
 
-# CORS 설정 (Flutter와 통신 허용)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://10.0.2.2:3000",
-    "http://localhost:8000",
-    "http://10.0.2.2:8000",
-]
-
-# 미들웨어 설정
+# 미들웨어
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,7 +40,6 @@ MIDDLEWARE = [
 # URL 설정
 ROOT_URLCONF = 'config.urls'
 
-# 템플릿 설정
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -67,21 +55,9 @@ TEMPLATES = [
     },
 ]
 
-# WSGI/ASGI 설정
 WSGI_APPLICATION = 'config.wsgi.application'
-ASGI_APPLICATION = 'config.asgi.application'  # ✅ WebSocket용
 
-# ✅ Redis 기반 Django Channels 설정
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
-}
-
-# 데이터베이스 설정
+# 데이터베이스
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -89,7 +65,7 @@ DATABASES = {
     }
 }
 
-# 비밀번호 유효성 검사기
+# 비밀번호 검증기
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -103,36 +79,24 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# 정적 및 미디어 파일 설정
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# 기본 필드 타입
+# 기본 모델 설정
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# 사용자 모델 지정
 AUTH_USER_MODEL = 'users.CustomUser'
 
-# 인증 백엔드 설정
+# ✅ 인증 백엔드: 이메일 로그인 허용
 AUTHENTICATION_BACKENDS = [
-    'users.backends.EmailBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    'users.backends.EmailBackend',  # email 기반 로그인
+    'django.contrib.auth.backends.ModelBackend',  # 기본 username 로그인도 지원
 ]
 
-# REST 프레임워크 설정
+# ✅ JWT 인증 설정
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
-    ),
+    )
 }
 
-# JWT 설정
+# ✅ JWT 토큰 만료 시간 설정 (원하면 조절 가능)
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),

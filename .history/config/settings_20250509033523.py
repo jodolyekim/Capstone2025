@@ -1,8 +1,8 @@
-import os
 from pathlib import Path
+import os
 from datetime import timedelta
 
-# 프로젝트 기본 디렉토리
+# 프로젝트 기본 디렉터리
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 보안 설정
@@ -22,9 +22,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'users',
-    'chat',        # ✅ 채팅 앱
-    'channels',    # ✅ Django Channels (WebSocket 처리)
-    'alerts',      # ✅ 보호자 알림 앱
 ]
 
 # CORS 설정 (Flutter와 통신 허용)
@@ -67,19 +64,8 @@ TEMPLATES = [
     },
 ]
 
-# WSGI/ASGI 설정
+# WSGI 설정
 WSGI_APPLICATION = 'config.wsgi.application'
-ASGI_APPLICATION = 'config.asgi.application'  # ✅ WebSocket용
-
-# ✅ Redis 기반 Django Channels 설정
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
-}
 
 # 데이터베이스 설정
 DATABASES = {
@@ -104,9 +90,7 @@ USE_I18N = True
 USE_TZ = True
 
 # 정적 및 미디어 파일 설정
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
+STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

@@ -3,9 +3,9 @@ from django.contrib.auth import authenticate
 from .models import CustomUser, Profile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-# 회원가입용 시리얼라이저
+# ✅ 회원가입 시리얼라이저
 class SignupSerializer(serializers.ModelSerializer):
-    password2 = serializers.CharField(write_only=True, label="비밀번호 확인")  # 비밀번호 확인 필드
+    password2 = serializers.CharField(write_only=True, label="비밀번호 확인")
 
     class Meta:
         model = CustomUser
@@ -29,18 +29,16 @@ class SignupSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, data):
-        # 비밀번호 일치 여부 확인
         if data['password'] != data['password2']:
             raise serializers.ValidationError({"password2": "비밀번호가 일치하지 않습니다."})
         return data
 
     def create(self, validated_data):
-        # password2 필드 제거 후 사용자 생성
         validated_data.pop('password2')
         user = CustomUser.objects.create_user(**validated_data)
         return user
 
-# 프로필 등록/수정용 시리얼라이저
+# ✅ 프로필 시리얼라이저
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
@@ -51,13 +49,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             '_gender',
             '_sex_orientation',
             '_communication_way',
-<<<<<<< HEAD
-            '_current_location_lat',   # ✅ 수정
-            '_current_location_lon',   # ✅ 수정
-=======
             '_current_location_lat',
             '_current_location_lon',
->>>>>>> feature/alerts-photo-notification
             '_match_distance',
             '_protector_info_name',
             '_protector_info_birth_date',
@@ -71,13 +64,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             '_gender': {'required': False, 'allow_blank': True},
             '_sex_orientation': {'required': False, 'allow_blank': True},
             '_communication_way': {'required': False},
-<<<<<<< HEAD
-            '_current_location_lat': {'required': False},   # ✅ 수정
-            '_current_location_lon': {'required': False},   # ✅ 수정
-=======
             '_current_location_lat': {'required': False},
             '_current_location_lon': {'required': False},
->>>>>>> feature/alerts-photo-notification
             '_match_distance': {'required': False},
             '_protector_info_name': {'required': False, 'allow_blank': True},
             '_protector_info_birth_date': {'required': False},
@@ -85,11 +73,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             '_protector_info_relationship': {'required': False, 'allow_blank': True},
         }
 
-# JWT 로그인 시 사용되는 커스텀 시리얼라이저
+# ✅ 커스텀 JWT 로그인 시리얼라이저
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 필드 재정의로 오류 메시지를 한글로 커스터마이징
         self.fields['email'] = serializers.EmailField(
             required=True,
             error_messages={
@@ -108,7 +96,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         )
 
     def validate(self, attrs):
-        # 사용자 인증 처리
         email = attrs.get('email')
         password = attrs.get('password')
 
@@ -119,12 +106,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         )
 
         if not user:
-            # 사용자 인증 실패 시 메시지 커스터마이징
             raise serializers.ValidationError({
                 'password': ['비밀번호가 틀렸습니다.']
             })
 
-        # 인증 성공 시 토큰 정보 및 추가 데이터 반환
         data = super().validate(attrs)
         data['user_id'] = user.id
         data['email'] = user.email

@@ -51,13 +51,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             '_gender',
             '_sex_orientation',
             '_communication_way',
-<<<<<<< HEAD
-            '_current_location_lat',   # ✅ 수정
-            '_current_location_lon',   # ✅ 수정
-=======
             '_current_location_lat',
             '_current_location_lon',
->>>>>>> feature/alerts-photo-notification
             '_match_distance',
             '_protector_info_name',
             '_protector_info_birth_date',
@@ -71,13 +66,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             '_gender': {'required': False, 'allow_blank': True},
             '_sex_orientation': {'required': False, 'allow_blank': True},
             '_communication_way': {'required': False},
-<<<<<<< HEAD
-            '_current_location_lat': {'required': False},   # ✅ 수정
-            '_current_location_lon': {'required': False},   # ✅ 수정
-=======
             '_current_location_lat': {'required': False},
             '_current_location_lon': {'required': False},
->>>>>>> feature/alerts-photo-notification
             '_match_distance': {'required': False},
             '_protector_info_name': {'required': False, 'allow_blank': True},
             '_protector_info_birth_date': {'required': False},
