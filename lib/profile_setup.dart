@@ -116,8 +116,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     if (_currentStep < 2) {
       setState(() => _currentStep++);
     } else {
-      Navigator.pushReplacementNamed(context, '/');
+      Navigator.pushReplacementNamed(context, '/interest-manual');
     }
+
   }
 
   // 이전 단계로 이동
