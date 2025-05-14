@@ -5,6 +5,8 @@ import 'signup_page.dart';
 import 'profile_setup.dart';
 import 'interest_page.dart'; // ✅ GPT 키워드 추출 화면
 import 'manual_interest_page.dart'; // ✅ 수동 키워드 선택 화면
+import 'package:flutter/material.dart';
+import 'chat/chat_demo_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,6 +15,15 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Chat Demo',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const ChatDemoScreen(),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
 
@@ -63,4 +74,3 @@ class MyApp extends StatelessWidget {
       },
     );
   }
-}
