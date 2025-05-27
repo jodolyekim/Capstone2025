@@ -38,13 +38,15 @@ class MyApp extends StatelessWidget {
         ),
         '/match': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return MatchingScreen(currentUserEmail: args['currentUserEmail']);
+          return MatchingScreen(
+            currentUserEmail: args['currentUserEmail'],
+            accessToken: args['accessToken'],
+          );
         },
         '/chat': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           return ChatScreen(
             userEmail: args['userEmail'],
-            chatPartner: args['chatPartner'],
           );
         },
 

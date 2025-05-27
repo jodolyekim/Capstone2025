@@ -1,25 +1,94 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class MatchingScreen extends StatefulWidget {
   final String currentUserEmail;
+  final String accessToken;
 
-  const MatchingScreen({super.key, required this.currentUserEmail});
+  const MatchingScreen({
+    super.key,
+    required this.currentUserEmail,
+    required this.accessToken,
+  });
 
   @override
   State<MatchingScreen> createState() => _MatchingScreenState();
 }
 
 class _MatchingScreenState extends State<MatchingScreen> {
-  final Map<String, dynamic> mockUser = {
-    'photoUrl': 'https://example.com/photo.jpg',
-    'name': '홍길동',
-    'keywords': ['산책', '책읽기', '고양이'],
-    'chatStyle': '짧고 재치 있게',
-    'distance': '7.4km 이내',
-  };
+  List<dynamic> candidates = [];
+  int currentIndex = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCandidates();
+  }
+
+  Future<void> fetchCandidates() async {
+    final url = Uri.parse('http://your.api.server/api/match/candidates/');
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer ${widget.accessToken}'},
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        candidates = jsonDecode(response.body);
+        isLoading = false;
+      });
+    } else {
+      // 오류 처리
+    }
+  }
+
+  Future<void> respondToMatch(int matchId, String action) async {
+    final url = Uri.parse('http://your.api.server/api/match/respond/$matchId/');
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer ${widget.accessToken}',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({"action": action}),
+    );
+
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200 && data['chatroom_id'] != null) {
+      Navigator.pushReplacementNamed(
+        context,
+        '/chat',
+        arguments: {
+          'userEmail': widget.currentUserEmail,
+          'chatPartner': candidates[currentIndex]['email'],
+        },
+      );
+    } else {
+      // 다음 사용자로 이동
+      setState(() {
+        currentIndex++;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (currentIndex >= candidates.length) {
+      return const Scaffold(
+        body: Center(child: Text("추천 사용자가 더 이상 없습니다.")),
+      );
+    }
+
+    final user = candidates[currentIndex];
+
     return Scaffold(
       appBar: AppBar(title: const Text("✨ 추천 사용자")),
       body: Padding(
@@ -32,14 +101,13 @@ class _MatchingScreenState extends State<MatchingScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.network(mockUser['photoUrl'] ?? '', height: 150),
+                if (user['photo'] != null)
+                  Image.network(user['photo'], height: 150),
                 const SizedBox(height: 12),
-                Text(mockUser['name'] ?? '알 수 없음',
+                Text(user['name'] ?? '이름 없음',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                Text("관심 키워드: ${(mockUser['keywords'] as List<dynamic>).join(', ')}"),
-                Text("대화 스타일: ${mockUser['chatStyle'] ?? ''}"),
-                Text("거리: ${mockUser['distance'] ?? ''}"),
+                Text("이메일: ${user['email']}"),
+                Text("거리: ${user['distance'] ?? '알 수 없음'}"),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -47,55 +115,26 @@ class _MatchingScreenState extends State<MatchingScreen> {
                     ElevatedButton.icon(
                       icon: const Icon(Icons.check),
                       label: const Text('💚 수락'),
-                      onPressed: () async {
-                        bool matched = await _handleAccept(
-                          widget.currentUserEmail,
-                          mockUser['name'],
-                        );
-                        if (matched && context.mounted) {
-                          Navigator.pushReplacementNamed(
-                            context,
-                            '/chat',
-                            arguments: {
-                              'userEmail': widget.currentUserEmail,
-                              'chatPartner': mockUser['name']
-                            },
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("상대방 수락 대기 중입니다.")),
-                          );
-                        }
-                      },
+                      onPressed: () => respondToMatch(user['match_id'], 'accept'),
                     ),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.close),
                       label: const Text('❌ 거절'),
-                      onPressed: () {
-                        _handleReject(widget.currentUserEmail, mockUser['name']);
-                        Navigator.pop(context);
-                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                      onPressed: () => respondToMatch(user['match_id'], 'reject'),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Text("⚠️ 먼저 거절하면 상대는 더 이상 응답할 수 없어요.",
-                    style: TextStyle(color: Colors.red, fontSize: 12)),
+                const Text(
+                  "⚠️ 먼저 거절하면 상대는 더 이상 응답할 수 없어요.",
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                ),
               ],
             ),
           ),
         ),
       ),
     );
-  }
-
-  Future<bool> _handleAccept(String currentUser, String otherUser) async {
-    // 실제 API로 변경 예정
-    await Future.delayed(const Duration(seconds: 1));
-    return true; // 임시로 매칭 성공 처리
-  }
-
-  void _handleReject(String currentUser, String otherUser) {
-    // 거절 API 연동 처리 예정
   }
 }
