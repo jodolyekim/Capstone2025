@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV TZ=Asia/Seoul
+
+# ✅ 핵심: 이 위치 기준으로 실행하게 맞춤
+WORKDIR /app/backend
+
+COPY . /app/backend
+
+RUN apt-get update && apt-get install -y \
+    tzdata \
+    netcat-openbsd \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 8000
+
+# ✅ 이 명령도 /app/backend 기준으로 실행됨 (config.asgi 있는 위치 맞아야 함)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]

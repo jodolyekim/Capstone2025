@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV TZ=Asia/Seoul
+
+# ✅ /app 이 루트 작업 디렉토리 (여기서 manage.py 있음)
+WORKDIR /app
+
+# ✅ 현재 backend 디렉토리 전체를 /app 으로 복사
+COPY . /app
+
+RUN apt-get update && apt-get install -y \
+    tzdata \
+    netcat-openbsd \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 8000
+
+# ✅ config.asgi 기준 경로도 맞게 됨
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]

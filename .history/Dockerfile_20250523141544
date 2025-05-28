@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV TZ=Asia/Seoul
+
+# ✅ 이제 backend 안에 Dockerfile 있으므로 WORKDIR을 그대로 유지
+WORKDIR /app
+
+# ✅ 여기 핵심! 중첩된 backend 폴더 안 생기게
+COPY . .
+
+RUN apt-get update && apt-get install -y \
+    tzdata \
+    netcat-openbsd \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 8000
+
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]
