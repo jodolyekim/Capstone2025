@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../screens/match/match_screen.dart'; // 매칭화면
-import 'chat_room_list_screen.dart'; // 채팅방 리스트
-import '../screens/chat/chat_screen.dart'; // 채팅화면
+import '../screens/match/match_screen.dart'; // 매칭 화면
+import 'chat_room_list_screen.dart'; // 채팅방 리스트 화면
+import '../screens/chat/chat_screen.dart'; // 채팅 화면
 
 class HomeScreen extends StatelessWidget {
   final String currentUserEmail;
@@ -53,12 +53,12 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // 🔧 테스트용 상대방 이메일
+                // 🔧 테스트용 상대방 이메일 설정
                 String targetUserEmail = currentUserEmail == 'rlaworud60@naver.com'
                     ? 'rlaworud61@naver.com'
                     : 'rlaworud60@naver.com';
 
-                // 🔧 고유 채팅방 ID 생성 (사전순 정렬)
+                // 🔧 고유 채팅방 ID 생성 (이메일 사전순 정렬)
                 List<String> sorted = [currentUserEmail, targetUserEmail]..sort();
                 String roomId = "${sorted[0]}_${sorted[1]}";
 

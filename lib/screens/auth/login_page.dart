@@ -43,6 +43,15 @@ class _LoginPageState extends State<LoginPage> {
       await prefs.setString('accessToken', accessToken);
       await prefs.setString('userEmail', email);
 
+      // ⭐️ 저장 확인을 위해 약간의 지연 추가
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      final checkToken = prefs.getString('accessToken');
+      final checkEmail = prefs.getString('userEmail');
+
+      print('✅ 저장 확인: $checkToken / $checkEmail');
+
+
       // 🔐 승인 여부 확인
       if (!isApproved) {
         if (context.mounted) {

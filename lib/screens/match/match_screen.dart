@@ -35,7 +35,10 @@ class _MatchingScreenState extends State<MatchingScreen> {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      // ✅ 인코딩 문제 해결을 위해 utf8 디코딩 사용
+      final decodedBody = utf8.decode(response.bodyBytes); // 👈 이거 추가
+      final data = jsonDecode(decodedBody); // 👈 이걸 수정
+
       debugPrint("✅ 후보 목록: $data");
 
       setState(() {
@@ -46,6 +49,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
       print('❌ 후보 목록 로딩 실패: ${response.statusCode}');
     }
   }
+
 
   Future<void> initiateMatch(int targetUserId) async {
     final url = Uri.parse('http://10.0.2.2:8000/api/match/initiate/');
@@ -178,13 +182,16 @@ class _MatchingScreenState extends State<MatchingScreen> {
 
     final user = candidates[currentIndex];
 
-    final keywords = (user['keywords'] ?? [])
-        .map<String>((kw) => utf8.decode(kw.toString().codeUnits))
-        .toList();
+    // final keywords = (user['keywords'] ?? [])
+    //     .map<String>((kw) => utf8.decode(kw.toString().codeUnits))
+    //     .toList();
 
-    final commonKeywords = (user['common_keywords'] ?? [])
-        .map<String>((kw) => utf8.decode(kw.toString().codeUnits))
-        .toList();
+    // final commonKeywords = (user['common_keywords'] ?? [])
+    //     .map<String>((kw) => utf8.decode(kw.toString().codeUnits))
+    //     .toList();
+
+    final keywords = List<String>.from(user['keywords'] ?? []);
+    final commonKeywords = List<String>.from(user['common_keywords'] ?? []);
 
     return Scaffold(
       appBar: AppBar(title: const Text("✨ 추천 사용자")),
