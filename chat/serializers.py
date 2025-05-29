@@ -36,11 +36,11 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         model = ChatRoom
         fields = [
             'id',
-            'chatroom',
             'participants',
             'messages',
             'created_at',
         ]
+
 
 class ReportSerializer(serializers.ModelSerializer):
     message = serializers.IntegerField()  # ✅ message를 정수형 ID로 받도록 명시

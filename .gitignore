@@ -1,7 +1,36 @@
+# 파이썬 & Django 관련
 *.pyc
 __pycache__/
 db.sqlite3
 .env
 /media/
 staticfiles/
+*.sqlite3
+*.log
+*.rdb
+media/
+venv/
+
+# macOS
+.DS_Store
+
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+.dart_tool/
+build/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+
+# Node/Frontend
+node_modules/
+lib/generated_plugin_registrant.dart
+
+# VSCode & JetBrains
+.vscode/
+.idea/
+
+# API Key 보안
+**/openai_key.txt
+**/config/api_keys.py
 

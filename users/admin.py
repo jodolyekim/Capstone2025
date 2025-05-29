@@ -3,8 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import (
     CustomUser, Profile, Guardian, Photo,
     InterestCategory, Interest, InterestKeywordCategoryMap,
-    SuggestedInterest, Match, ChatRoom, Message,
-    AutoCloseMessage, BadWordsLog
+    SuggestedInterest, Match
 )
 
 # ✅ Profile 모델을 CustomUser 관리자 페이지에서 inline으로 표시
@@ -72,19 +71,10 @@ class MatchAdmin(admin.ModelAdmin):
     search_fields = ('user1__email', 'user2__email')
     ordering = ('-requested_at',)
 
-# ✅ ChatRoom 관리자 등록
-@admin.register(ChatRoom)
-class ChatRoomAdmin(admin.ModelAdmin):
-    list_display = ('id', 'match', 'is_active', 'created_at', 'last_message_at')
-    search_fields = ('match__user1__email', 'match__user2__email')
-
-# ✅ 기타 모델 일괄 등록
+# ✅ 기타 모델 등록
 admin.site.register(Guardian)
 admin.site.register(Photo)
 admin.site.register(InterestCategory)
 admin.site.register(Interest)
 admin.site.register(InterestKeywordCategoryMap)
 admin.site.register(SuggestedInterest)
-admin.site.register(Message)
-admin.site.register(AutoCloseMessage)
-admin.site.register(BadWordsLog)

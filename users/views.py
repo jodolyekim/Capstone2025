@@ -10,7 +10,8 @@ from django.db import IntegrityError
 from django.core.files.storage import default_storage
 from math import radians, sin, cos, asin, sqrt
 
-from .models import CustomUser, Profile, Match, Guardian, ChatRoom
+from .models import CustomUser, Profile, Match, Guardian
+from chat.models import ChatRoom
 from .serializers import (
     SignupSerializer, ProfileSerializer, CustomTokenObtainPairSerializer, GuardianSerializer
 )
@@ -176,6 +177,7 @@ def respond_to_match(request):
     elif user == match.user2:
         match.status_user2 = MAPPING[response]
 
+    # users/views.py 내 respond_to_match 함수 내부
     if match.status_user1 == 'accepted' and match.status_user2 == 'accepted':
         match.is_matched = True
         match.matched_at = timezone.now()
@@ -184,7 +186,8 @@ def respond_to_match(request):
         room, created = ChatRoom.objects.get_or_create(match=match)
         if created:
             room.participants.set([match.user1, match.user2])
-            room.save()  # ✅ 꼭 있어야 DB에 반영됨
+            room.save()
+
     else:
         match.save()
 
@@ -251,74 +254,22 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * c
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_candidates(request):
-    user = request.user
-    try:
-        profile = user.profile
-    except Profile.DoesNotExist:
-        return Response({"error": "프로필이 존재하지 않습니다."}, status=400)
-
-    my_lat = profile._current_location_lat
-    my_lon = profile._current_location_lon
-    my_keywords = set(user.interests.values_list('keyword', flat=True))
-
-    candidates = Profile.objects.exclude(user=user).filter(is_approved=True).exclude(
-        user__matches_as_user1__user2=user, user__matches_as_user1__status_user1='rejected'
-    ).exclude(
-        user__matches_as_user2__user1=user, user__matches_as_user2__status_user2='rejected'
-    )
-
-    result = []
-    for profile in candidates:
-        candidate_user = profile.user
-        candidate_keywords = set(candidate_user.interests.values_list('keyword', flat=True))
-        common_keywords = list(candidate_keywords & my_keywords)
-
-        try:
-            photo_url = request.build_absolute_uri(profile.photo.image.url)
-        except Photo.DoesNotExist:
-            photo_url = None
-
-        distance = "알 수 없음"
-        if my_lat and my_lon and profile._current_location_lat and profile._current_location_lon:
-            distance = round(haversine(my_lat, my_lon, profile._current_location_lat, profile._current_location_lon))
-
-        try:
-            match = Match.objects.get(user1__in=[user, candidate_user], user2__in=[user, candidate_user])
-            match_id = match.id
-        except Match.DoesNotExist:
-            match_id = None
-
-        result.append({
-            "match_id": match_id,
-            "user_id": candidate_user.id,
-            "name": profile._name or "이름 없음",
-            "photo": photo_url,
-            "distance": distance,
-            "keywords": list(candidate_keywords),
-            "common_keywords": common_keywords,
-        })
-
-    return Response(result)
-
-#관심사 관련
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def save_gpt_interest(request):
-    user = request.user
-    try:
-        data = request.data
-        user.interests.filter(source='gpt').delete()
-        for category, keywords in data.items():
-            for kw in keywords:
-                if kw.strip():
-                    user.interests.create(keyword=kw.strip(), category=category, source='gpt')
-        return Response({"message": "GPT 키워드가 저장되었습니다."}, status=201)
-    except Exception as e:
-        logger.error(f"❌ GPT 키워드 저장 오류: {e}")
-        return Response({"error": "GPT 키워드 저장 중 오류 발생"}, status=500)
+# #관심사 관련
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def save_gpt_interest(request):
+#     user = request.user
+#     try:
+#         data = request.data
+#         user.interests.filter(source='gpt').delete()
+#         for category, keywords in data.items():
+#             for kw in keywords:
+#                 if kw.strip():
+#                     user.interests.create(keyword=kw.strip(), category=category, source='gpt')
+#         return Response({"message": "GPT 키워드가 저장되었습니다."}, status=201)
+#     except Exception as e:
+#         logger.error(f"❌ GPT 키워드 저장 오류: {e}")
+#         return Response({"error": "GPT 키워드 저장 중 오류 발생"}, status=500)
 
 
 @api_view(['POST'])
@@ -619,51 +570,57 @@ def haversine(lat1, lon1, lat2, lon2):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_candidates(request):
-    current_user = request.user
+    user = request.user
     try:
-        my_profile = current_user.profile
+        profile = user.profile
     except Profile.DoesNotExist:
         return Response({"error": "프로필이 존재하지 않습니다."}, status=400)
 
-    my_lat = my_profile._current_location_lat
-    my_lon = my_profile._current_location_lon
-    my_keywords = set(current_user.interests.values_list('keyword', flat=True))
+    my_lat = profile._current_location_lat
+    my_lon = profile._current_location_lon
+    my_keywords = set(user.interests.values_list('keyword', flat=True))
+    my_preferred_gender = profile.preferred_gender
+    my_preferred_orientation = profile.preferred_orientation
+    my_match_distance = profile._match_distance or 5  # 기본값 5km
 
-    # 거절된 상대는 제외
-    candidates = Profile.objects.exclude(user=current_user).filter(is_approved=True).exclude(
-        user__matches_as_user1__user2=current_user,
-        user__matches_as_user1__status_user1='rejected'
-    ).exclude(
-        user__matches_as_user2__user1=current_user,
-        user__matches_as_user2__status_user2='rejected'
-    )
+    # 후보자 필터링: 자기 자신 제외, 승인된 유저만
+    candidates = Profile.objects.exclude(user=user).filter(is_approved=True)
 
     result = []
-    for profile in candidates:
-        candidate_user = profile.user
+    for candidate in candidates:
+        candidate_user = candidate.user
         candidate_keywords = set(candidate_user.interests.values_list('keyword', flat=True))
+
+        # 키워드 1개 이상 겹쳐야 통과
         common_keywords = list(candidate_keywords & my_keywords)
+        if not common_keywords:
+            continue
 
-        try:
-            photo_obj = profile.photo
-            photo_url = request.build_absolute_uri(photo_obj.image.url)
-        except Photo.DoesNotExist:
-            photo_url = None
-
-        distance = "알 수 없음"
-        if my_lat and my_lon and profile._current_location_lat and profile._current_location_lon:
+        # 거리 필터링
+        if all([my_lat, my_lon, candidate._current_location_lat, candidate._current_location_lon]):
             distance = round(haversine(
                 my_lat, my_lon,
-                profile._current_location_lat,
-                profile._current_location_lon
+                candidate._current_location_lat,
+                candidate._current_location_lon
             ))
+            if distance > my_match_distance:
+                continue
+        else:
+            distance = "알 수 없음"
 
-        # 🔥 매칭 객체 조회
+        # 성별 및 성적 지향 필터링 (선호 조건이 설정된 경우만 적용)
+        if my_preferred_gender and candidate._gender and my_preferred_gender != candidate._gender:
+            continue
+        if my_preferred_orientation and candidate._sex_orientation and my_preferred_orientation != candidate._sex_orientation:
+            continue
+
         try:
-            match = Match.objects.get(
-                user1__in=[current_user, candidate_user],
-                user2__in=[current_user, candidate_user]
-            )
+            photo_url = request.build_absolute_uri(candidate.photo.image.url)
+        except:
+            photo_url = None
+
+        try:
+            match = Match.objects.get(user1__in=[user, candidate_user], user2__in=[user, candidate_user])
             match_id = match.id
         except Match.DoesNotExist:
             match_id = None
@@ -671,7 +628,7 @@ def get_candidates(request):
         result.append({
             "match_id": match_id,
             "user_id": candidate_user.id,
-            "name": profile._name or "이름 없음",
+            "name": candidate._name or "이름 없음",
             "photo": photo_url,
             "distance": distance,
             "keywords": list(candidate_keywords),
@@ -679,6 +636,7 @@ def get_candidates(request):
         })
 
     return Response(result)
+
 
 
 # ✅ GPT 키워드 저장

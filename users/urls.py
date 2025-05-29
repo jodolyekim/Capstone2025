@@ -21,7 +21,7 @@ urlpatterns = [
 
     # ✅ 관심사 관련 (GPT 기반/수동 선택/추천)
     path('interest/manual/', views.save_manual_interest, name='interest-manual'),
-    path('interest/save/', views.save_gpt_interest, name='interest-gpt-save'),
+    # path('interest/save/', views.save_gpt_interest, name='interest-gpt-save'),
     path('interest/manual-keywords/', views.get_manual_interest_keywords, name='interest-manual-keywords'),
     path('interest/suggestions/', views.get_suggested_interests, name='interest-suggestions'),
 ]

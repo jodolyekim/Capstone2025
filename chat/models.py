@@ -1,37 +1,31 @@
 from django.db import models
-from django.contrib.auth import get_user_model  # ✅ 이거 꼭 추가
-User = get_user_model()  # ✅ 이거도 꼭 위 import 아래에 선언
+from users.models import CustomUser, Match  # ✅ 외부 모델 참조
 
 class ChatRoom(models.Model):
-    chatroom = models.CharField(max_length=100, unique=True)
-    participants = models.ManyToManyField(User, related_name='chat_rooms')  # ✅ 여기 사용됨
+    match = models.OneToOneField(Match, on_delete=models.CASCADE, related_name='chatroom')
+    participants = models.ManyToManyField(CustomUser, related_name='chatrooms')
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    last_message_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"ChatRoom: {self.chatroom}"
+        return f"ChatRoom for Match {self.match.id}"
 
 class Message(models.Model):
-    chatroom = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE)
-    input_msg = models.TextField()
-    filtered_msg = models.TextField(blank=True, null=True)
-    msg_type = models.CharField(
-        max_length=10,
-        choices=[('text', 'Text'), ('image', 'Image')],
-        default='text'
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    format_filtered = models.BooleanField(default=False)
-    gpt_filtered = models.BooleanField(default=False)
-    reason = models.CharField(max_length=255, blank=True)
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='sent_messages')
+    content = models.TextField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    message_type = models.CharField(max_length=20, default='text')  # 예: 'text', 'image'
 
     def __str__(self):
-        return f"{self.sender.email} ({self.msg_type}): {self.input_msg[:30]}"
-class Report(models.Model):
-    reporter = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='reports_made')
-    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='reports_received')
-    reason = models.CharField(max_length=255)
-    reported_at = models.DateTimeField(auto_now_add=True)
+        return f"{self.sender.email} at {self.sent_at}"
+
+class BadWordsLog(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='badwords_logs')
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='badwords')
+    bad_word = models.CharField(max_length=50)
+    filtered_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"[신고] {self.reporter.email} → 메시지 ID {self.message.id}"
+        return f"{self.user.email} - {self.bad_word}"

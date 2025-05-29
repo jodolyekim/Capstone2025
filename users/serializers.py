@@ -2,7 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import CustomUser, Profile, Guardian
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import ChatRoom
+from chat.models import ChatRoom
+
 
 # ✅ 회원가입용 시리얼라이저
 class SignupSerializer(serializers.ModelSerializer):
