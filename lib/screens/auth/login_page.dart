@@ -41,9 +41,13 @@ class _LoginPageState extends State<LoginPage> {
       final isRejected = responseData['is_rejected'] ?? false;
 
       await prefs.setString('accessToken', accessToken);
-      await prefs.setString('userEmail', email);
+      await prefs.setString('userEmail', responseData['email']);
 
-      // 🔐 승인 여부 확인
+      await Future.delayed(const Duration(milliseconds: 300));
+      final checkToken = prefs.getString('accessToken');
+      final checkEmail = prefs.getString('userEmail');
+      print('✅ 저장 확인: $checkToken / $checkEmail');
+
       if (!isApproved) {
         if (context.mounted) {
           Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
@@ -61,12 +65,10 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // ✅ 모든 조건이 충족되었을 때만 프로필 완료 상태 저장
       final isFullyComplete = (stepStatus == 5 && isApproved);
       await prefs.setBool('isProfileSet', isFullyComplete);
 
       if (!isFullyComplete) {
-        // 🧩 저장된 프로필 정보 받아오기
         final profileRes = await http.get(
           Uri.parse('http://10.0.2.2:8000/api/profile/'),
           headers: {'Authorization': 'Bearer $accessToken'},
@@ -83,7 +85,6 @@ class _LoginPageState extends State<LoginPage> {
           });
         }
       } else {
-        // ✅ 정상 로그인 완료 → 매칭 페이지로
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("로그인 성공!")),
@@ -92,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
             context,
             '/home',
             arguments: {
-              'currentUserEmail': email,
+              'currentUserEmail': responseData['email'],
               'accessToken': accessToken,
             },
           );
@@ -102,12 +103,18 @@ class _LoginPageState extends State<LoginPage> {
       String message = '로그인 실패';
       try {
         final data = json.decode(utf8.decode(res.bodyBytes));
-        final keys = ['email', 'password', 'non_field_errors', 'detail', 'error'];
-        for (final key in keys) {
-          if (data.containsKey(key)) {
-            final value = data[key];
-            message = (value is List && value.isNotEmpty) ? value[0].toString() : value.toString();
-            break;
+        if (data['error'] == '가입 승인이 완료되지 않았습니다.') {
+          message = '회원가입 승인을 기다려주세요.\n승인 후 로그인을 다시 시도해주세요.';
+        } else if (data['error'] == '가입이 거절되었습니다.') {
+          message = '제출된 서류가 유효하지 않아 가입이 거절되었습니다.';
+        } else {
+          final keys = ['email', 'password', 'non_field_errors', 'detail', 'error'];
+          for (final key in keys) {
+            if (data.containsKey(key)) {
+              final value = data[key];
+              message = (value is List && value.isNotEmpty) ? value[0].toString() : value.toString();
+              break;
+            }
           }
         }
       } catch (_) {

@@ -30,10 +30,10 @@ class _GuardianInfoStepState extends State<GuardianInfoStep> {
     // 1단계: 프로필 정보에 보호자 항목 저장
     final profileUrl = Uri.parse('http://10.0.2.2:8000/api/profile/update/');
     final profileBody = {
-      '_protector_info_name': _nameController.text,
-      '_protector_info_phone': _phoneController.text,
-      '_protector_info_birth_date': _birthDate?.toIso8601String().split('T')[0],
-      '_protector_info_relationship': _relation,
+      'protector_info_name': _nameController.text,
+      'protector_info_phone': _phoneController.text,
+      'protector_info_birth_date': _birthDate?.toIso8601String().split('T')[0],
+      'protector_info_relationship': _relation,
     };
 
     final profileRes = await http.patch(

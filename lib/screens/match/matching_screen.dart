@@ -35,7 +35,9 @@ class _MatchingScreenState extends State<MatchingScreen> {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final decodedBody = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decodedBody);
+
       debugPrint("✅ 후보 목록: $data");
 
       setState(() {
@@ -115,11 +117,10 @@ class _MatchingScreenState extends State<MatchingScreen> {
       }
 
       if (isChatCreated) {
-        final roomId = data['room_id']; // ✅ room_id도 백엔드에서 받았을 때
-
+        final roomId = data['room_id'];
         Navigator.pushReplacementNamed(
           context,
-          '/chatRoom', // 👉 너의 실제 채팅화면 라우트 이름
+          '/chatRoom',
           arguments: {
             'room_id': roomId,
             'currentUserEmail': widget.currentUserEmail,
@@ -177,14 +178,9 @@ class _MatchingScreenState extends State<MatchingScreen> {
     }
 
     final user = candidates[currentIndex];
-
-    final keywords = (user['keywords'] ?? [])
-        .map<String>((kw) => utf8.decode(kw.toString().codeUnits))
-        .toList();
-
-    final commonKeywords = (user['common_keywords'] ?? [])
-        .map<String>((kw) => utf8.decode(kw.toString().codeUnits))
-        .toList();
+    final keywords = List<String>.from(user['keywords'] ?? []);
+    final commonKeywords = List<String>.from(user['common_keywords'] ?? []);
+    final position = user['position'] ?? "후보 ${currentIndex + 1}/${candidates.length}";
 
     return Scaffold(
       appBar: AppBar(title: const Text("✨ 추천 사용자")),
@@ -202,7 +198,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
                   Image.network(user['photo'], height: 150),
                 const SizedBox(height: 12),
                 Text(
-                  user['name'] ?? '이름 없음',
+                  "${user['name'] ?? '이름 없음'} ($position)",
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 Text("거리: ${(user['distance'] ?? '알 수 없음').toString()}"),
@@ -235,7 +231,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
                       onPressed: () {
                         final id = user['user_id'];
                         if (id != null && id is int) {
-                          respondToMatch(id, 'accept'); // ✅ 이렇게 바꿔줘
+                          respondToMatch(id, 'accept');
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('❗ 사용자 ID가 유효하지 않습니다.')),
@@ -250,7 +246,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
                       onPressed: () {
                         final id = user['user_id'];
                         if (id != null && id is int) {
-                          respondToMatch(id, 'reject'); // ❌ 거절은 기존 로직 사용
+                          respondToMatch(id, 'reject');
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('❗ 사용자 ID가 유효하지 않습니다.')),
@@ -271,5 +267,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
         ),
       ),
     );
-  }
-}
+  } // <-- build 함수 닫기
+
+} // <-- _MatchingScreenState 클래스 닫기
+

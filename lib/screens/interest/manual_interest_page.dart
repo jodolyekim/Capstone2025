@@ -39,23 +39,20 @@ class _InterestManualPageState extends State<InterestManualPage> {
       final token = prefs.getString('accessToken');
       final email = prefs.getString('userEmail');
 
-      print('🟡 DEBUG token: $token');
-      print('🟡 DEBUG email: $email');
-
       if (token == null || email == null) {
         throw Exception('accessToken 또는 userEmail 없음');
       }
 
-      // ✅ 수정된 추천 키워드 API 주소
-      final url = Uri.parse('http://10.0.2.2:8000/api/interest/suggestions/');
-      final res = await http.get(url, headers: {
-        'Authorization': 'Bearer $token'
-      }).timeout(const Duration(seconds: 7));
+      final url = Uri.parse('http://10.0.2.2:8000/api/interest/keywords/manual/');
+      final res = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 7));
 
       if (res.statusCode == 200) {
         final data = json.decode(utf8.decode(res.bodyBytes));
         if (data is Map<String, dynamic>) {
-          Map<String, List<String>> parsed = {};
+          final parsed = <String, List<String>>{};
           data.forEach((key, value) {
             if (value is List) {
               parsed[key] = List<String>.from(value.map((e) => e.toString()));
@@ -75,8 +72,8 @@ class _InterestManualPageState extends State<InterestManualPage> {
       }
     } catch (e) {
       print('❌ 키워드 로딩 실패: $e');
-      if (mounted) setState(() => isLoading = false);
-      if (context.mounted) {
+      if (mounted) {
+        setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('추천 키워드를 불러오지 못했습니다.\n$e')),
         );
@@ -89,18 +86,21 @@ class _InterestManualPageState extends State<InterestManualPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
       final email = prefs.getString('userEmail');
-      if (token == null || email == null) throw Exception('accessToken 또는 userEmail 없음');
 
-      final url = Uri.parse('http://10.0.2.2:8000/api/interest/manual/');
+      if (token == null || email == null) {
+        throw Exception('accessToken 또는 userEmail 없음');
+      }
+
+      final url = Uri.parse('http://10.0.2.2:8000/api/interest/keywords/manual/');
       final res = await http.post(
         url,
         headers: {
           'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: json.encode({
           'category': selectedCategory,
-          'keywords': selectedKeywords.toList()
+          'keywords': selectedKeywords.toList(),
         }),
       );
 
@@ -113,7 +113,7 @@ class _InterestManualPageState extends State<InterestManualPage> {
         completeUrl,
         headers: {
           'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
       );
 
@@ -124,6 +124,7 @@ class _InterestManualPageState extends State<InterestManualPage> {
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       await Future.delayed(const Duration(milliseconds: 300));
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -216,11 +217,7 @@ class _InterestManualPageState extends State<InterestManualPage> {
                       });
                     },
                     onDeleted: isSelected
-                        ? () {
-                            setState(() {
-                              selectedKeywords.remove(keyword);
-                            });
-                          }
+                        ? () => setState(() => selectedKeywords.remove(keyword))
                         : null,
                   );
                 }).toList(),

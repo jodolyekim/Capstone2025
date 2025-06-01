@@ -36,9 +36,13 @@ class _InterestPageState extends State<InterestPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
-      if (token == null) throw Exception('accessToken 없음');
+      final email = prefs.getString('userEmail');
 
-      // 1️⃣ GPT 키워드 추출 API
+      if (token == null || email == null) {
+        throw Exception('accessToken 또는 userEmail 없음');
+      }
+
+      // 1️⃣ 키워드 추출 요청
       final extractUrl = Uri.parse("http://10.0.2.2:8000/api/interest/gpt/");
       final extractRes = await http.post(
         extractUrl,
@@ -59,27 +63,29 @@ class _InterestPageState extends State<InterestPage> {
         }
       });
 
-      // 2️⃣ GPT 키워드 저장 API
-      final saveUrl = Uri.parse("http://10.0.2.2:8000/api/interest/save/");
+      // 2️⃣ 추출된 키워드 저장
+      final saveUrl = Uri.parse("http://10.0.2.2:8000/api/interest/keywords/save-result/");
       final saveRes = await http.post(
         saveUrl,
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
         },
-        body: jsonEncode({"intro_text": introText}),
+        body: jsonEncode(result),  // ✅ 이 부분만 고치면 끝!
       );
 
       if (saveRes.statusCode != 201) {
-        print('⚠️ GPT 키워드 저장 실패: ${saveRes.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('키워드 저장에는 실패했지만 추출은 성공했어요.')),
-        );
+        debugPrint('⚠️ GPT 키워드 저장 실패: ${saveRes.statusCode}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('키워드 저장에는 실패했지만 추출은 성공했어요.')),
+          );
+        }
       }
 
       setState(() {
         extractedKeywords = flatList;
-        selectedKeywords = List.from(flatList); // 초기에는 모두 선택된 상태
+        selectedKeywords = List.from(flatList);
         isLoading = false;
       });
     } catch (e) {
@@ -87,6 +93,12 @@ class _InterestPageState extends State<InterestPage> {
         error = '에러 발생: $e';
         isLoading = false;
       });
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+      }
     }
   }
 
@@ -156,7 +168,8 @@ class _InterestPageState extends State<InterestPage> {
                 onPressed: isLoading ? null : extractKeywords,
                 child: isLoading
                     ? const SizedBox(
-                        width: 20, height: 20,
+                        width: 20,
+                        height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Text('GPT로 키워드 추출'),
