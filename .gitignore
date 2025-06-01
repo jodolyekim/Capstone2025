@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+.history/
+.env
+
+# Django
+media/
+static/
+**/migrations/
+!**/migrations/__init__.py
+
+# VSCode
+.vscode/
+
+# Docker
+*.log
+*.pid
+*.sock
+.history/
+.env
