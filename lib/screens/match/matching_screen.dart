@@ -178,31 +178,104 @@ class _MatchingScreenState extends State<MatchingScreen> {
     }
 
     final user = candidates[currentIndex];
+    final gender = user['my_gender'] ?? '없음';
+    final preferredGender = user['preferred_gender'] ?? '없음';
+    final communications = List<String>.from(user['communication_way'] ?? []);
+
     final keywords = List<String>.from(user['keywords'] ?? []);
     final commonKeywords = List<String>.from(user['common_keywords'] ?? []);
     final position = user['position'] ?? "후보 ${currentIndex + 1}/${candidates.length}";
 
     return Scaffold(
       appBar: AppBar(title: const Text("✨ 추천 사용자"), centerTitle: true,),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
         child: Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 8,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              // mainAxisSize: MainAxisSize.min,
               children: [
-                if (user['photo'] != null)
-                  Image.network(user['photo'], height: 150),
-                const SizedBox(height: 12),
+                // GestureDetector(
+                //   onTap: () {
+                //     if (user['photo'] != null) {
+                //       showDialog(
+                //         context: context,
+                //         builder: (_) => Dialog(
+                //           backgroundColor: Colors.black,
+                //           // insetPadding: const EdgeInsets.all(16),
+                //           child: SizedBox(
+                //             height: 100,
+                //             child: PageView.builder(
+                //               itemCount: user['photo'].length,
+                //               itemBuilder: (context, index) {
+                //                 return InteractiveViewer(
+                //                   child: Image.network(
+                //                     user['photo'][index],
+                //                     fit: BoxFit.contain,
+                //                   ),
+                //                 );
+                //               },
+                //             ),
+                //           ),
+                //         ),
+                //       );
+                //     }
+                //   },
+                //   child: ClipRRect(
+                //     borderRadius: BorderRadius.circular(12),
+                //     child: Image.network(
+                //       user['photo'][0], // 대표 이미지
+                //       height: 100,
+                //       width: double.infinity,
+                //       fit: BoxFit.cover,
+                //     ),
+                //   ),
+                // ),
+
+                _buildPhotoViewer(user),
+                const SizedBox(height: 16),
                 Text(
-                  "${user['name'] ?? '이름 없음'} ($position)",
+                  "${user['name'] ?? '이름 없음'} ($position), 거리: ${(user['distance'] ?? '알 수 없음').toString()}",
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                 ),
-                Text("거리: ${(user['distance'] ?? '알 수 없음').toString()}"),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "선호하는 성별: ",
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    Text(
+                      preferredGender,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    "선호하는 소통 방식",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (communications.isNotEmpty)
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: communications.map((comm) => Chip(label: Text(comm, style: TextStyle(fontSize: 18),))).toList(),
+                  )
+                else
+                  Text("선호하는 소통 방식이 없습니다."),
+                const SizedBox(height: 20),
+                Text("관심사 키워드", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 20),
                 if (keywords.isNotEmpty)
                   Wrap(
                     spacing: 6,
@@ -213,6 +286,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
                         label: Text(
                           keyword,
                           style: TextStyle(
+                            fontSize: 18,
                             color: isCommon ? Colors.white : Colors.black87,
                             fontWeight: isCommon ? FontWeight.bold : FontWeight.normal,
                           ),
@@ -268,5 +342,61 @@ class _MatchingScreenState extends State<MatchingScreen> {
       ),
     );
   } // <-- build 함수 닫기
+
+  Widget _buildPhotoViewer(dynamic user) {
+    final List<dynamic>? photos = user['photos'];
+    // debugPrint('Photos: ${user['photos']}');
+    // print("user keys: ${user.keys}");
+    // print("user['photos']: ${user['photos']}");
+    if (photos == null || photos.isEmpty) {
+      return const Text("사진 없음.");
+    }
+
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (_) => Dialog(
+            backgroundColor: Colors.black,
+            insetPadding: const EdgeInsets.all(8),
+            child: Stack(
+              children: [
+                PageView.builder(
+                  itemCount: photos.length,
+                  itemBuilder: (context, index) {
+                    return InteractiveViewer(
+                      child: Image.network(
+                        photos[index],
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                      ),
+                    );
+                  },
+                ),
+                Positioned(
+                  top: 20,
+                  right: 20,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          photos[0], // 대표 이미지 하나만 보여줌
+          height: 150,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+        ),
+      ),
+    );
+  }
 
 } // <-- _MatchingScreenState 클래스 닫기

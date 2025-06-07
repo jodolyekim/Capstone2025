@@ -305,7 +305,7 @@ class _ChatScreenState extends State<ChatScreen> {
               msg['text'] ?? '',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 13,
+                fontSize: 18,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -315,6 +315,22 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return GestureDetector(
+      onTap: () {
+        if (isImage) {
+          final imgUrl = msg['text']!.startsWith('http')
+              ? msg['text']!
+              : 'http://10.0.2.2:8000${msg['text']!}';
+          showDialog(
+            context: context,
+            builder: (_) => Dialog(
+              backgroundColor: Colors.black,
+              child: InteractiveViewer(
+                child: Image.network(imgUrl),
+              ),
+            ),
+          );
+        }
+      },
       onLongPress: () {
         if (!isMe && msg['sender'] != 'SYSTEM') {
           showDialog(
@@ -362,20 +378,18 @@ class _ChatScreenState extends State<ChatScreen> {
                   ? ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  // ✅ 상대 경로일 경우 절대 경로로 보정
                   msg['text']!.startsWith('http')
                       ? msg['text']!
                       : 'http://10.0.2.2:8000${msg['text']!}',
                   width: 200,
-                  errorBuilder: (_, __, ___) =>
-                  const Text("이미지를 불러올 수 없습니다."),
+                  errorBuilder: (_, __, ___) => const Text("이미지를 불러올 수 없습니다."),
                 ),
               )
                   : Text(
                 msg['text'] ?? '',
                 style: TextStyle(
                   color: isMe ? Colors.white : Colors.black87,
-                  fontSize: 15,
+                  fontSize: 20, // ✅ 글씨 크기 키움
                 ),
               ),
             ],
@@ -392,9 +406,7 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         title: Text("${widget.targetUserName} 님과의 대화"),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.report, color: Colors.red),
-            tooltip: "신고하기",
+          TextButton.icon(
             onPressed: () {
               Navigator.push(
                 context,
@@ -407,6 +419,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               );
             },
+            icon: const Icon(Icons.report_gmailerrorred_outlined, size: 24, color: Colors.red),
+            label: const Text(
+              "신고",
+              style: TextStyle(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -423,7 +440,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const Divider(height: 1),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10), // ✅ 상하 여백 추가
             color: Colors.white,
             child: Row(
               children: [
@@ -432,11 +449,22 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: _sendImage,
                 ),
                 Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration.collapsed(
-                        hintText: '메시지를 입력하세요'),
-                    onSubmitted: (_) => _send(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        hintText: '메시지를 입력하세요',
+                        border: InputBorder.none,
+                      ),
+                      minLines: 1,
+                      maxLines: 4, // ✅ 더 넓게 입력 가능
+                    ),
                   ),
                 ),
                 IconButton(
@@ -450,4 +478,5 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
 }

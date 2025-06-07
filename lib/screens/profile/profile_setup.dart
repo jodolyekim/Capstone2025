@@ -417,13 +417,21 @@ class Step2Communication extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-            '채팅 시 선호하는 대화 방식 (복수 선택 가능)',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16
-            ),
+          '채팅 시 선호하는 대화 방식',
+          textAlign: TextAlign.start,
+          style: TextStyle(
+            fontSize: 22, fontWeight: FontWeight.w600,
+          ),
         ),
-        const SizedBox(height: 20),
+        const Text(
+          '(복수 선택 가능)',
+          textAlign: TextAlign.start,
+          style: TextStyle(
+            fontSize: 22, fontWeight: FontWeight.w600, color: Colors.redAccent
+          ),
+        ),
+        
+        const SizedBox(height: 5),
         ...options.map((option) => CheckboxListTile(
           title: Text(option),
           value: selectedOptions.contains(option),
@@ -491,11 +499,12 @@ class Step3LocationDistance extends StatelessWidget {
             width: 300,
             child: ElevatedButton(
                 onPressed: () => _getLocation(context),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.deepPurple),
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),
-                child: const Text('내 위치 불러오기')
+                child: const Text('내 위치 불러오기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.deepPurple))
             ),
           )
         ),

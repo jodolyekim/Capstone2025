@@ -70,7 +70,7 @@ class _ChatRoomListScreenState extends State<ChatRoomListScreen> {
                     return ListTile(
                       leading: const Icon(Icons.chat_bubble_outline),
                       title: Text(room['other_user_name'] ?? "상대 이름 없음"),
-                      subtitle: Text("이메일: ${room['other_user_email'] ?? '알 수 없음'}"),
+                      subtitle: const Text("상대방과의 채팅방"),
                       trailing: ElevatedButton(
                         onPressed: () {
                           Navigator.push(

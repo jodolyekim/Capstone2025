@@ -128,21 +128,21 @@ class _SignupPageState extends State<SignupPage> {
             : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
                 const Text("환영합니다!", textAlign: TextAlign.center, style: TextStyle(fontSize: 40, fontWeight: FontWeight.w600),),
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
                 buildTextField(_nameController, '이름'),
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
                 buildTextField(_emailController, '이메일', keyboardType: TextInputType.emailAddress),
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
                 buildTextField(_passwordController, '비밀번호', obscureText: true),
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
                 buildTextField(_confirmController, '비밀번호 확인', obscureText: true),
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: signup,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple[300],
+                    backgroundColor: Colors.deepPurple[400],
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(

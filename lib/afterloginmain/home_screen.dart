@@ -20,11 +20,34 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const SizedBox(height: 30),
+
+            // 🟣 상단 아이콘 추가 (예: 하트 아이콘)
+            const Icon(Icons.favorite, size: 80, color: Colors.deepPurple),
+
+            const SizedBox(height: 20),
+
+            // 🟣 환영 메시지
+            const Text(
+              "환영합니다!",
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "마음이 통하는 사람을 만나보세요.",
+              style: TextStyle(fontSize: 18, color: Colors.black54),
+            ),
+            const SizedBox(height: 50),
             // ✅ 매칭 화면 이동
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                backgroundColor: Colors.deepPurple[400],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               onPressed: () {
                 Navigator.push(
@@ -45,8 +68,13 @@ class HomeScreen extends StatelessWidget {
             // ✅ 채팅방 목록 화면 이동
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                backgroundColor: Colors.deepPurple[400],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               onPressed: () {
                 Navigator.push(

@@ -157,9 +157,9 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
           title: const Text('로그인'),
           centerTitle: true,
+          backgroundColor: Colors.white,
       ),
       body: Padding(
-
         padding: const EdgeInsets.only(left: 50, right: 50, top: 25),
         child: showProfilePrompt
             ? Column(
@@ -178,38 +178,25 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               )
             : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextField(
-                    controller: _emailController,
-                    style: const TextStyle(fontSize: 24),
-                    decoration: const InputDecoration(
-                        labelText: '이메일',
-                        labelStyle: TextStyle(
-                          fontSize: 24,       // 폰트 크기 키움 (기본은 12~14 정도)
-                          fontWeight: FontWeight.bold, // 굵은 글씨
-                        ),
-                        contentPadding: EdgeInsets.only(top: 55),
-                    ),
-                  ),
-                  TextField(
-                    controller: _passwordController,
-                    style: const TextStyle(fontSize: 24),
-                    decoration: const InputDecoration(
-                        labelText: '비밀번호',
-                        labelStyle: TextStyle(
-                          fontSize: 24,       // 폰트 크기 키움 (기본은 12~14 정도)
-                          fontWeight: FontWeight.bold, // 굵은 글씨
-                        ),
-                        contentPadding: EdgeInsets.only(top: 55),
-                    ),
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
+                  const Text("환영합니다!", textAlign: TextAlign.center, style: TextStyle(fontSize: 40, fontWeight: FontWeight.w600),),
+                  const SizedBox(height: 40),
+                  buildTextField(_emailController, "이메일"),
+                  const SizedBox(height: 40),
+                  buildTextField(_passwordController, "비밀번호", obscureText: true),
+                  const SizedBox(height: 40),
 
                   ElevatedButton(
                       onPressed: login,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                        backgroundColor: Colors.deepPurple[300],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                         textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       child: const Text('로그인')
@@ -217,10 +204,26 @@ class _LoginPageState extends State<LoginPage> {
                   if (error.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 12),
-                      child: Text(error, style: const TextStyle(color: Colors.red)),
+                      child: Text(error, style: const TextStyle(fontSize: 18, color: Colors.red)),
                     ),
                 ],
               ),
+      ),
+    );
+  }
+
+  Widget buildTextField(TextEditingController controller, String label,
+      {bool obscureText = false, TextInputType keyboardType = TextInputType.text}) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      style: const TextStyle(fontSize: 20),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       ),
     );
   }

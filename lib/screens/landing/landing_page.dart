@@ -15,7 +15,7 @@ class LandingPage extends StatelessWidget {
             const Text(
               'SPECTRUM HEARTS', // 앱 이름
               style: TextStyle(
-                fontSize: 50,
+                fontSize: 60,
                 fontWeight: FontWeight.bold,
                 color: Colors.pinkAccent,
               ),
@@ -27,27 +27,29 @@ class LandingPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, '/login'),
               style: ElevatedButton.styleFrom(
-                // minimumSize: const Size(200, 50), // 버튼의 최소 크기 (가로 x 세로)
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16), // 내부 여백
-                textStyle: const TextStyle( // 글자 스타일
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                backgroundColor: Colors.deepPurple[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
+                textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               child: const Text('로그인'),
             ),
-            const SizedBox(height: 30), // 버튼 사이 여백
+            const SizedBox(height: 50), // 버튼 사이 여백
 
             // 회원가입 버튼
             ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, '/signup'),
               style: ElevatedButton.styleFrom(
-                // minimumSize: const Size(200, 50), // 버튼의 최소 크기 (가로 x 세로)
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16), // 내부 여백
-                textStyle: const TextStyle( // 글자 스타일
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                backgroundColor: Colors.deepPurple[400],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
+                textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               child: const Text('회원가입'),
             ),

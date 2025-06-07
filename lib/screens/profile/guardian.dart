@@ -106,10 +106,20 @@ class _GuardianInfoStepState extends State<GuardianInfoStep> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        TextField(
-            controller: _nameController,
-            style: const TextStyle(fontSize: 24),
+        const SizedBox(height: 10),
+        TextFormField(
+          controller: _nameController,
+          style: const TextStyle(fontSize: 18),
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: '이름을 입력해주세요',
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
         ),
+        // TextField(
+        //     controller: _nameController,
+        //     style: const TextStyle(fontSize: 24),
+        // ),
         const SizedBox(height: 30),
         Row(
           children: [
@@ -149,9 +159,15 @@ class _GuardianInfoStepState extends State<GuardianInfoStep> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        TextField(
-            controller: _phoneController,
-            style: const TextStyle(fontSize: 24),
+        const SizedBox(height: 10),
+        TextFormField(
+          controller: _phoneController,
+          style: const TextStyle(fontSize: 18),
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: '이름을 입력해주세요',
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
         ),
 
         const SizedBox(height: 30),
