@@ -17,8 +17,7 @@ def upload_profile_photo(request):
     if not image:
         return Response({'error': '이미지 파일이 없습니다.'}, status=400)
 
-    # 기존 사진 제거
-    ProfilePhoto.objects.filter(profile=profile).delete()
+    # ❌ 기존 사진 제거 X
     profile_photo = ProfilePhoto.objects.create(profile=profile, image=image)
 
     return Response({'image_url': profile_photo.image.url})

@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   web:
     build: .
-    container_name: django_app
+    container_name: django_app_0603
     command: >
       sh -c "
       python manage.py migrate &&
@@ -22,7 +20,7 @@ services:
 
   db:
     image: postgres:15-alpine
-    container_name: postgres_db
+    container_name: postgres_db_0603
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -33,7 +31,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: redis_server
+    container_name: redis_server_0603
     restart: always
     ports:
       - "6379:6379"

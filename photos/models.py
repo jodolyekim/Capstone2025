@@ -2,7 +2,7 @@ from django.db import models
 from users.models import Profile
 
 class ProfilePhoto(models.Model):
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='photo')
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='photos')
     image = models.ImageField(upload_to='profile_photos/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
