@@ -76,11 +76,11 @@ class _InterestPageState extends State<InterestPage> {
 
       if (saveRes.statusCode != 201) {
         debugPrint('⚠️ GPT 키워드 저장 실패: ${saveRes.statusCode}');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('키워드 저장에는 실패했지만 추출은 성공했어요.')),
-          );
-        }
+        // if (context.mounted) {
+        //   ScaffoldMessenger.of(context).showSnackBar(
+        //     const SnackBar(content: Text('키워드 저장에는 실패했지만 추출은 성공했어요.')),
+        //   );
+        // }
       }
 
       setState(() {

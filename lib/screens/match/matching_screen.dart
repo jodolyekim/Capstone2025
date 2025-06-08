@@ -108,30 +108,43 @@ class _MatchingScreenState extends State<MatchingScreen> {
     );
 
     try {
-      final data = jsonDecode(response.body);
-      final message = data['message'] ?? '처리 완료';
-      final isChatCreated = data['chat_created'] == true;
+      if (response.statusCode == 200) {
+        final decodedBody = utf8.decode(response.bodyBytes);
+        final data = jsonDecode(decodedBody);
+        final message = data['message'] ?? '처리 완료';
+        final isChatCreated = data['chat_created'] == true;
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-      }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        }
 
-      if (isChatCreated) {
-        final roomId = data['room_id'];
-        Navigator.pushReplacementNamed(
-          context,
-          '/chatRoom',
-          arguments: {
-            'room_id': roomId,
-            'currentUserEmail': widget.currentUserEmail,
-            'accessToken': widget.accessToken,
-          },
-        );
+        if (isChatCreated) {
+          final roomId = data['room_id'];
+          Navigator.pushReplacementNamed(
+            context,
+            '/chatRoom',
+            arguments: {
+              'room_id': roomId,
+              'currentUserEmail': widget.currentUserEmail,
+              'accessToken': widget.accessToken,
+            },
+          );
+        } else {
+          setState(() {
+            currentIndex++;
+          });
+        }
       } else {
-        setState(() {
-          currentIndex++;
-        });
+        // 실패 응답 처리 (예: 잘못된 포맷 등)
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['error'] ?? '오류가 발생했습니다.';
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("❗ $errorMessage")),
+          );
+        }
       }
+
     } catch (e) {
       debugPrint('❌ 응답 파싱 에러: $e');
       debugPrint('📦 받은 본문: ${response.body}');

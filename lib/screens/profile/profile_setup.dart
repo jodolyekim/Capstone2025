@@ -413,35 +413,36 @@ class Step2Communication extends StatelessWidget {
       '서로의 말에 공감의 메시지를 주고받고 싶어요'
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '채팅 시 선호하는 대화 방식',
-          textAlign: TextAlign.start,
-          style: TextStyle(
-            fontSize: 22, fontWeight: FontWeight.w600,
+    return SingleChildScrollView(  // ✅ overflow 방지
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '채팅 시 선호하는 대화 방식',
+            textAlign: TextAlign.start,
+            style: TextStyle(
+              fontSize: 22, fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        const Text(
-          '(복수 선택 가능)',
-          textAlign: TextAlign.start,
-          style: TextStyle(
-            fontSize: 22, fontWeight: FontWeight.w600, color: Colors.redAccent
+          const Text(
+            '(복수 선택 가능)',
+            textAlign: TextAlign.start,
+            style: TextStyle(
+              fontSize: 22, fontWeight: FontWeight.w600, color: Colors.redAccent,
+            ),
           ),
-        ),
-        
-        const SizedBox(height: 5),
-        ...options.map((option) => CheckboxListTile(
-          title: Text(option),
-          value: selectedOptions.contains(option),
-          onChanged: (val) {
-            final updated = List<String>.from(selectedOptions);
-            val! ? updated.add(option) : updated.remove(option);
-            onChanged(updated);
-          },
-        )),
-      ],
+          const SizedBox(height: 5),
+          ...options.map((option) => CheckboxListTile(
+            title: Text(option),
+            value: selectedOptions.contains(option),
+            onChanged: (val) {
+              final updated = List<String>.from(selectedOptions);
+              val! ? updated.add(option) : updated.remove(option);
+              onChanged(updated);
+            },
+          )),
+        ],
+      ),
     );
   }
 }
