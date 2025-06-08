@@ -1,0 +1,43 @@
+# 📦 Pub 관련
+.dart_tool/
+.packages
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# 🏗️ Build output
+build/
+**/ios/Flutter/.last_build_id
+**/doc/api/
+
+# 🔒 OS / 에디터 관련
+.DS_Store
+*.swp
+.idea/
+*.iml
+*.log
+
+# 💻 VS Code 관련 (설정은 포함할 수 있으므로 주석처리)
+#.vscode/
+
+# 📱 Android 빌드 산출물
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# 🧪 심볼파일 & 난독화
+app.*.symbols
+app.*.map.json
+
+# 🗃️ 이전 이력 백업 폴더 (불필요)
+.history
+.build/
+.buildlog/
+
+# 🧹 기타 캐시 / 임시 파일
+*.pyc
+*.class
+.svn/
+.atom/
+.swiftpm/
+migrate_working_dir/
