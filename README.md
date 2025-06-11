@@ -13,8 +13,24 @@ main 브랜치에 backend와 frontend 디렉토리를 생성하고 분류했습�
 ### 전체 Django 프로젝트와 Docker 컨테이너 환경 설정 디렉토리
 ```
 backend
-├── .env                  # 환경변수 configuration (.gitignore로 포함 안됨)
-├── .gitignore            # 보안상 중요한 파일(ex: .env, db.splite3다
+├── .env                  # 환경변수 configuration (.gitignore로 포함 안됨)Add commentMore actions
+├── .gitignore            # 보안상 중요한 파일(ex: .env, db.splite3 등)은 Github에 푸시할 때 무시하도록
+├── Dockerfile            # Docker image 생성을 위한 스크립트 파일
+├── docker-compose.yml    # Docker 컨테이너 서비스 정의 및 프로젝트 수행 파일
+├── requirements.txt      # 프로젝트에 요구되는 라이브러리 및 프레임워크 의존성 목록
+├── db.sqlite3            # Django Database (.gitignore로 포함 안됨)
+├── docker-compose.yml
+├── project_structure.txt
+├── requirements.txt
+├── manage.py             # Django 프로젝트 실행 파일
+└── config                # Django 프로젝트 최상위 루트 configuration
+    ├── asgi.py
+    ├── settings.py       
+    ├── urls.py
+    └── wsgi.py
+```
+
+### 정적 파일
 ```
 ├── media
 │   ├── chat_images
