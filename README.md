@@ -49,6 +49,105 @@ backend
 ```
 
 
+
+### 상세
+```
+├── check_models.py
+├── chat
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── consumers.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── ...
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── routing.py
+│   ├── serializers.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── utils
+│   │   ├── gpt_judge.py
+│   │   ├── message_filtering.py
+│   │   └── message_restriction.py
+│   └── views.py
+├── interest
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── gpt_utils.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── ...
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── matching
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── ...
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── urls.py
+│   ├── utils.py
+│   └── views.py
+├── photos
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── firebase.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── ...
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── sms
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── sms_real.py
+│   ├── test_sms.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── utils.py
+│   └── views.py
+└── users
+    ├── __init__.py
+    ├── admin.py
+    ├── apps.py
+    ├── backends.py
+    ├── management
+    │   ├── __init__.py
+    │   └── commands
+    │       ├── __init__.py
+    │       ├── create_fortest_users.py
+    │       └── create_keywords.py
+    ├── migrations
+    │   ├── 0001_initial.py
+    │   ├── 0002_rename__birthymd_profile_birth_date_and_more.py
+    │   ├── 0003_delete_interest_alter_profile_interests.py
+    │   └── __init__.py
+    ├── models.py
+    ├── serializers.py
+    ├── tests.py
+    ├── urls.py
+    └── views.py
+```
+
 ### 정적 파일
 ```
 ├── media
