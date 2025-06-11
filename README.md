@@ -31,118 +31,16 @@ backend
 ### 구현한 애플리케이션 백엔드 기능 디렉토리
 프로젝트에서 구현한 애플리케이션 기능에 해당하는 Django 프로젝트 디렉토리
 
+---
 
 ### 요약
 ```
 ...
-├── users
-├── interest
-├── matching
-├── chat
-├── photos
-└── sms
-```
-
-
-
-### 상세
-```
-├── check_models.py
-├── chat
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── consumers.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   ├── ...
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── routing.py
-│   ├── serializers.py
-│   ├── tests.py
-│   ├── urls.py
-│   ├── utils
-│   │   ├── gpt_judge.py
-│   │   ├── message_filtering.py
-│   │   └── message_restriction.py
-│   └── views.py
-├── interest
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── gpt_utils.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   ├── ...
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── serializers.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-├── matching
-│   ├── admin.py
-│   ├── apps.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   ├── ...
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── serializers.py
-│   ├── urls.py
-│   ├── utils.py
-│   └── views.py
-├── photos
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── firebase.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   ├── ...
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-├── sms
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── sms_real.py
-│   ├── test_sms.py
-│   ├── tests.py
-│   ├── urls.py
-│   ├── utils.py
-│   └── views.py
-└── users
-    ├── __init__.py
-    ├── admin.py
-    ├── apps.py
-    ├── backends.py
-    ├── management
-    │   ├── __init__.py
-    │   └── commands
-    │       ├── __init__.py
-    │       ├── create_fortest_users.py
-    │       └── create_keywords.py
-    ├── migrations
-    │   ├── 0001_initial.py
-    │   ├── 0002_rename__birthymd_profile_birth_date_and_more.py
-    │   ├── 0003_delete_interest_alter_profile_interests.py
-    │   └── __init__.py
-    ├── models.py
-    ├── serializers.py
-    ├── tests.py
-    ├── urls.py
-    └── views.py
-```
-
+├── users      # 사용자 관련 
+├── interest   # 관심사 설정
+├── matching   # 매칭 
+├── chat       # 채팅
+├── photos     # 사진 는 실제 저장한 사진 파일이 저장되는 디렉토리
 ```
 ├── media
 │   ├── chat_images
@@ -167,10 +65,20 @@ backend
 │       ├── 43_kNlBhMr.jpg
 │       ├── 43_rURwhrH.jpg
 │       └── test_image.jpg
+└── staticfiles
 ```
 
 
 ### frontend
-```bash
-
+```
+frontend
+├── lib
+│   ├── afterloginmain
+│   │   ├── chat_room_list_screen
+│   │   └── family_23_43.jpg
+│   ├── screens
+│   ├── services
+│   ├── Widgets
+│   └── main.dart
+└── pubspec.yaml
 ```
