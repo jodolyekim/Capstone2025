@@ -40,12 +40,12 @@ backend
 ### 요약
 ```
 ...
-├── users
-├── interest
-├── matching
-├── chat
-├── photos
-└── sms
+├── users     # 사용자 관련 기능
+├── interest  # 관심사 설정
+├── matching  # 매칭
+├── chat      # 채팅
+├── photos    # 사진 업로드 기능
+└── sms       # 보호자 메시지 알림림
 ```
 
 
@@ -178,14 +178,23 @@ backend
 
 
 ### frontend
+백엔드에 대응하는 프론트엔드로 주요한 파일들을 명시했습니다.
 ```
 frontend
 ├── lib
 │   ├── afterloginmain
-│   │   ├── chat_room_list_screen
-│   │   └── family_23_43.jpg
+│   │   ├── chat_room_list_screen.dart
+│   │   └── home_screen.dart
 │   ├── screens
+│   │   ├── auth
+│   │   ├── chat
+│   │   ├── interest
+│   │   ├── landing
+│   │   ├── match
+│   │   └── profile
 │   ├── services
+│   │   ├── chat_service.dart
+│   │   └── django_file_upload.dart
 │   ├── Widgets
 │   └── main.dart
 └── pubspec.yaml
