@@ -5,11 +5,6 @@ main 브랜치에 backend와 frontend 디렉토리를 생성하고 분류했습�
 
 ## backend
 
-### 사용한 기술 스택
-```
-
-```
-
 ### 전체 Django 프로젝트와 Docker 컨테이너 환경 설정 디렉토리
 ```
 backend
